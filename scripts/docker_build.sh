@@ -2,7 +2,7 @@
 
 # WARNING: THIS FILE IS MANAGED IN THE 'BOILERPLATE' REPO AND COPIED TO OTHER REPOSITORIES.
 # ONLY EDIT THIS FILE FROM WITHIN THE 'LYFT/BOILERPLATE' REPOSITORY:
-# 
+#
 # TO OPT OUT OF UPDATES, SEE https://github.com/lyft/boilerplate/blob/master/Readme.rst
 
 set -e
@@ -32,12 +32,12 @@ if [ -n "$RELEASE_SEMVER" ]; then
   IMAGE_TAG_WITH_SEMVER="${IMAGE_NAME}:${RELEASE_SEMVER}${IMAGE_TAG_SUFFIX}"
 fi
 
-# build the image
-docker build -t "$IMAGE_TAG_WITH_SHA" --build-arg IMAGE_TAG="${IMAGE_TAG_WITH_SHA}" .
-echo "${IMAGE_TAG_WITH_SHA} built locally."
-
 # if REGISTRY specified, push the images to the remote registy
 if [ -n "$REGISTRY" ]; then
+
+  # build the image
+  docker build -t "$IMAGE_TAG_WITH_SHA" --build-arg DOCKER_IMAGE="${REGISTRY}/${IMAGE_TAG_WITH_SHA}" .
+  echo "${IMAGE_TAG_WITH_SHA} built locally."
 
   if [ -n "${DOCKER_REGISTRY_PASSWORD}" ]; then
     docker login --username="$DOCKER_REGISTRY_USERNAME" --password="$DOCKER_REGISTRY_PASSWORD"
@@ -55,6 +55,9 @@ if [ -n "$REGISTRY" ]; then
 
     docker push "${REGISTRY}/${IMAGE_TAG_WITH_SEMVER}"
     echo "${REGISTRY}/${IMAGE_TAG_WITH_SEMVER} pushed to remote."
-
   fi
+else
+    # build the image
+  docker build -t "$IMAGE_TAG_WITH_SHA" --build-arg DOCKER_IMAGE="${REGISTRY}/${IMAGE_TAG_WITH_SHA}" .
+  echo "${IMAGE_TAG_WITH_SHA} built locally."
 fi

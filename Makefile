@@ -1,4 +1,7 @@
-IMAGE_NAME="lyft/flytekubecondemo2019"
+export IMAGE_NAME=flytekubecondemo2019
 
 docker_build:
-	IMAGE_NAME=flytesnacks scripts/docker_build.sh
+	scripts/docker_build.sh
+
+docker_push:
+	REGISTRY=docker.io/lyft scripts/docker_build.sh
