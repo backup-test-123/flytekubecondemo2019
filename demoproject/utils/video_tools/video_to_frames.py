@@ -19,7 +19,11 @@ def video_to_frames(video_filename, output_dir, skip_if_dir_exists=False):
     output_dir_path.mkdir(0o777, parents=True, exist_ok=False)
 
     vidcap = cv2.VideoCapture(str(video_filename))
-    print(vidcap.isOpened())
+    print("VideoCapture of {} created? {}".format(video_filename, vidcap.isOpened()))
+
+    if not vidcap.isOpened():
+        raise IOError
+
     success, image = vidcap.read()
     count = 0
     print(
@@ -27,8 +31,10 @@ def video_to_frames(video_filename, output_dir, skip_if_dir_exists=False):
             video_filename, output_dir
         )
     )
+
     while success:
         cv2.imwrite(f"{output_dir}/Frame_{count:05d}.png", image)
         success, image = vidcap.read()
         count += 1
+
     print(f"{count} frames extracted")

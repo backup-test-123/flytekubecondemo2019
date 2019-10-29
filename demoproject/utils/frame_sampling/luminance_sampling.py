@@ -12,8 +12,8 @@ DEFAULT_N_TILES = (32, 32)
 
 
 def luminance_sample_collection(
-    raw_images_dir,
-    sampled_images_out_dir,
+    raw_frames_dir,
+    sampled_frames_out_dir,
     n_clusters,
     sample_size,
     logger,
@@ -26,7 +26,7 @@ def luminance_sample_collection(
     of each n_clusters to the sampled_images_out_dir.
     """
     frame_ids, frame_lumin_vecs = analyze_image_collection(
-        raw_images_dir, n_tiles=n_tiles
+        raw_frames_dir, n_tiles=n_tiles
     )
 
     logger.info("Starting to run K-means clustering...")
@@ -54,8 +54,8 @@ def luminance_sample_collection(
 
     sample_frames(
         sampled_groups,
-        src_dir=raw_images_dir,
-        dest_dir=sampled_images_out_dir,
+        src_dir=raw_frames_dir,
+        dest_dir=sampled_frames_out_dir,
         skip_if_dir_exists=False,
         logger=logger,
     )
