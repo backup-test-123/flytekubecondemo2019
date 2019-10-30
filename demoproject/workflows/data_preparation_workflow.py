@@ -10,8 +10,8 @@ from demoproject.utils.frame_sampling.luminance_sampling import luminance_sample
 from demoproject.utils.video_tools.video_to_frames import video_to_frames
 
 
-# S3_PREFIX = "s3://lyft-modelbuilder/metadata/kubecon"
-# SESSION_PATH_FORMAT = "{s3_prefix}/data/collections/{session_id}/{sub_path}/{stream_name}".format(s3_prefix=S3_PREFIX)
+DEFAULT_REMOTE_PREFIX = "s3://lyft-modelbuilder/metadata/flytekubecondemo2019"
+SESSION_PATH_FORMAT = "{remote_prefix}/data/collections/{session_id}/{sub_path}/{stream_name}"
 # DEFAULT_SESSION_ID = (
 #     "1538521877,1538521964"
 # )
@@ -46,7 +46,7 @@ def create_multipartblob_from_folder(folder_path):
 
 
 @inputs(
-    raw_frames_multiblob=Types.MultiPartBlob,
+    raw_frames_mpblob=Types.MultiPartBlob,
     n_clusters=Types.Integer,
     sample_size=Types.Integer,
     random_seed=Types.Integer,
@@ -78,13 +78,14 @@ def luminance_select_collection_worker(
             random_seed=random_seed,
         )
 
-        mpblob, files_names_list = create_multipartblob_from_folder(local_output_dir.local_path)
+        mpblob, selected_file_names_in_folder = create_multipartblob_from_folder(local_output_dir.local_path)
         selected_image_mpblob.set(mpblob)
-        selected_file_names.set(files_names_list)
+        selected_file_names.set(selected_file_names_in_folder)
 
 
 @inputs(
-    raw_frame_mpblobs=[Types.MultiPartBlob],
+    raw_frames_mpblobs=[Types.MultiPartBlob],
+    corresponding_videos_paths=[Types.String],
     n_clusters=Types.Integer,
     sample_size=Types.Integer,
     random_seed=Types.Integer
@@ -96,9 +97,8 @@ def luminance_select_collection_worker(
 @dynamic_task(cache_version="1")
 def luminance_select_collections(
     wf_params,
-    session_ids_string,
-    input_sub_path,
-    input_stream,
+    raw_frames_mpblobs,
+    corresponding_video_paths,
     n_clusters,
     sample_size,
     random_seed,
@@ -110,20 +110,15 @@ def luminance_select_collections(
     is a comma separated list of session_ids. It will then execute `luminance_select_collection_worker` for
     each of those, with the same sub_paths and stream. random_seed will be applied to each sub_task
     """
-    all_session_ids = session_ids_string.split(",")
-    if "_zip" in input_sub_path:
-        input_stream = input_stream + ".zip"
 
     sub_tasks = [
         luminance_select_collection_worker(
-            input_zip_blob=SESSION_PATH_FORMAT.format(
-                session_id=session_id, sub_path=input_sub_path, stream_name=input_stream
-            ),
+            raw_frames_mpblob=raw_frames_mpblob,
             n_clusters=n_clusters,
             sample_size=sample_size,
             random_seed=random_seed,
         )
-        for session_id in all_session_ids
+        for raw_frames_mpblob in raw_frames_mpblobs
     ]
     selected_image_blobs.set(
         [sub_task.outputs.selected_image_blobs for sub_task in sub_tasks]
@@ -134,40 +129,7 @@ def luminance_select_collections(
 
 
 @inputs(
-    session_ids=Types.String,
-    input_sub_path=Types.String,
-    input_stream=Types.String
-)
-@outputs(
-    raw_frames_mpblobs=[[Types.MultiPartBlob]],
-    video_paths=[Types.String]
-)
-@dynamic_task(cache_version="1", memory_request=8000)
-def extract_from_video_collections(
-    wf_params, session_ids, input_sub_path, input_stream, videos_frames_multipartblobs, video_paths
-):
-    """
-    This is a driver task that kicks off the `extract_from_avi_collection_worker`s. It assumes that session_ids
-    is a comma separated list of session_ids. It will then execute extract_from_avi_collection for
-    each of those, with the same sub_paths and stream
-    """
-    all_session_ids = session_ids.split(",")
-
-    sub_tasks = [
-        extract_from_video_collection_worker(
-            session_id=session_id,
-            input_sub_path=input_sub_path,
-            input_stream=input_stream,
-        )
-        for session_id in all_session_ids
-    ]
-
-    videos_frames_multipartblobs.set([sub_tasks.outputs.image_blobs for sub_tasks in sub_tasks])
-    video_paths.set(t.outputs.video_file_name for t in sub_tasks)
-
-
-@inputs(
-    input_video_file_name=Types.String,
+    input_video_remote_path=Types.String,
 )
 @outputs(
     raw_frames_mpblob=Types.MultiPartBlob,
@@ -193,26 +155,88 @@ def extract_from_video_collection_worker(
             video_file_name.set(input_video_file_name)
 
 
+@inputs(
+    video_remote_paths=[Types.String]
+)
+@outputs(
+    raw_frames_mpblobs=[[Types.MultiPartBlob]],
+    video_paths=[Types.String]
+)
+@dynamic_task(cache_version="1", memory_request=8000)
+def extract_from_video_collections(
+    wf_params, video_remote_paths, raw_frames_mpblobs, video_paths
+):
+    """
+    This is a driver task that kicks off the `extract_from_avi_collection_worker`s. It assumes that session_ids
+    is a comma separated list of session_ids. It will then execute extract_from_avi_collection for
+    each of those, with the same sub_paths and stream
+    """
+
+    sub_tasks = [
+        extract_from_video_collection_worker(
+            input_video_remote_path=video_remote_path,
+        )
+        for video_remote_path in video_remote_paths
+    ]
+
+    raw_frames_mpblobs.set([sub_tasks.outputs.image_blobs for sub_tasks in sub_tasks])
+    video_paths.set(t.outputs.video_file_name for t in sub_tasks)
+
+@inputs(
+    video_remote_prefix=Types.String,
+    sub_path=Types.String,
+    session_ids=[Types.String],
+    session_streams=[Types.String]
+)
+@outputs(
+    video_remote_paths=[Types.String]
+)
+@python_task
+def generate_video_full_remote_paths(video_remote_prefix, sub_path, session_ids, session_streams, video_remote_paths):
+    remote_paths = []
+
+    video_path_info_pairs = zip(session_ids, session_streams)
+
+    for session_id, session_stream in video_path_info_pairs:
+        remote_paths.append(
+            SESSION_PATH_FORMAT.format(
+                remote_prefix=video_remote_prefix,
+                session_id=session_id,
+                sub_path=sub_path,
+                stream_name=session_stream,
+            )
+        )
+    video_remote_paths.set(remote_paths)
+
+
 @workflow_class
 class DataPreparationWorkflow:
     session_ids = Input(Types.String, required=True,
                         help="IDs of video sessions to extract frames out of")
     session_streams = Input(Types.String, required=True,
                             help="Stream names of video sessions to extract frames out of")
-    video_sessions_path_prefix = Input(Types.String, required=True,
-                                       help="The path prefix where all the raw videos are stored")
+    video_remote_prefix = Input(Types.String, required=True, default=DEFAULT_REMOTE_PREFIX,
+                                help="The path prefix where all the raw videos are stored")
+    sub_path = Input(Types.String, required=True,
+                     help="The subpath where the streams are actually stored")
     sampling_random_seed = Input(Types.Integer, default=DEFAULT_RANDOM_SEED)
     sampling_n_clusters = Input(Types.Integer, default=DEFAULT_LUMINANCE_N_CLUSTERS)
     sampling_sample_size = Input(Types.Integer, default=DEFAULT_LUMINANCE_SAMPLE_SIZE)
 
-    extract_from_video_collection_task = extract_from_video_collections(
-        video_sessions_path_prefix=video_sessions_path_prefix,
+    generate_video_full_remote_paths_task = generate_video_full_remote_paths(
+        video_remote_prefix=video_remote_prefix,
+        sub_path=sub_path,
         session_ids=session_ids,
+        session_streams=session_streams,
+    )
+
+    extract_from_video_collection_task = extract_from_video_collections(
+        video_remote_paths=generate_video_full_remote_paths_task.outputs.video_remote_paths
     )
 
     luminance_select_collections_task = luminance_select_collections(
         raw_frames_mpblobs=extract_from_video_collection_task.outputs.raw_frames_multipartblobs,
-        corresponding_videos=extract_from_video_collection_task.outputs.video_paths,
+        corresponding_videos_paths=extract_from_video_collection_task.outputs.video_paths,
         n_clusters=sampling_n_clusters,
         sample_size=sampling_sample_size,
         random_seed=sampling_random_seed,
@@ -220,5 +244,5 @@ class DataPreparationWorkflow:
 
     selected_frames_mpblobs = Output(luminance_select_collections_task.outputs.sample_frames_multipartblobs,
                                      sdk_type=Types.MultiPartBlob)
-    selected_frames_mpblobs_metadata = Output(luminance_select_collections_task.outputs.video_paths,
-                                              sdk_type=[Types.String])
+    selected_frames_mpblobs_metadata = Output(luminance_select_collections_task.outputs.selected_file_names,
+                                              sdk_type=[[Types.String]])
