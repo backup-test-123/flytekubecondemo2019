@@ -11,6 +11,7 @@ register:
 
 .PHONY: docker_push
 register_sandbox: docker_push
+	kubectl delete job register || true
 	kubectl create job register --image=docker.io/lyft/${IMAGE_NAME}:${VERSION} -- /opt/flytekit_venv make register
 
 execute:
