@@ -246,7 +246,7 @@ class DataPreparationWorkflow:
         random_seed=sampling_random_seed,
     )
 
-    selected_frames_mpblobs = Output(luminance_select_collections_task.outputs.sample_frames_multipartblobs,
+    selected_frames_mpblobs = Output(luminance_select_collections_task.outputs.selected_image_mpblobs,
                                      sdk_type=Types.MultiPartBlob)
     selected_frames_mpblobs_metadata = Output(luminance_select_collections_task.outputs.selected_file_names,
                                               sdk_type=[[Types.String]])
