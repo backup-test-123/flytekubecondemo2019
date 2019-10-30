@@ -137,12 +137,12 @@ def luminance_select_collections(
 )
 @python_task(cache_version="1", memory_request=8000)
 def extract_from_video_collection_worker(
-    wf_params, input_video_file_name, raw_video_blob, raw_frames_mpblob, video_file_name
+    wf_params, input_video_remote_path, raw_frames_mpblob, video_file_name
 ):
 
     with wf_params.working_directory_get_named_tempfile("input.avi") as video_local_path:
         with flytekit_utils.AutoDeletingTempDir("output_images") as local_output_dir:
-            Types.Blob.fetch(remote_path=input_video_file_name, local_path=video_local_path)
+            Types.Blob.fetch(remote_path=input_video_remote_path, local_path=video_local_path)
 
             video_to_frames(
                 video_filename=video_local_path,
@@ -152,7 +152,7 @@ def extract_from_video_collection_worker(
 
             mpblob, files_names_list = create_multipartblob_from_folder(local_output_dir.local_path)
             raw_frames_mpblob.set(mpblob)
-            video_file_name.set(input_video_file_name)
+            video_file_name.set(input_video_remote_path)
 
 
 @inputs(
@@ -192,7 +192,9 @@ def extract_from_video_collections(
     video_remote_paths=[Types.String]
 )
 @python_task
-def generate_video_full_remote_paths(video_remote_prefix, sub_path, session_ids, session_streams, video_remote_paths):
+def generate_video_full_remote_paths(
+        video_remote_prefix, sub_path, session_ids, session_streams, video_remote_paths
+):
     remote_paths = []
 
     video_path_info_pairs = zip(session_ids, session_streams)
