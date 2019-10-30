@@ -98,7 +98,7 @@ def luminance_select_collection_worker(
 def luminance_select_collections(
     wf_params,
     raw_frames_mpblobs,
-    corresponding_video_paths,
+    corresponding_videos_paths,
     n_clusters,
     sample_size,
     random_seed,
