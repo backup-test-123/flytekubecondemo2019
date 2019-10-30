@@ -11,7 +11,7 @@ register:
 
 .PHONY: docker_push
 register_sandbox: docker_push
-	kubectl create job register --image=docker.io/lyft/${IMAGE_NAME}:${VERSION} -- make register
+	kubectl create job register --image=docker.io/lyft/${IMAGE_NAME}:${VERSION} -- /opt/flytekit_venv make register
 
 execute:
 	pyflyte -p ${PROJECT} -d ${DOMAIN} --config /app/sandbox.config lp execute app.workflows.simple_workflow.SimpleWorkflow
