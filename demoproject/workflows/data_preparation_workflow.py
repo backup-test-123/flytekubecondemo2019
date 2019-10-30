@@ -186,12 +186,12 @@ def extract_from_video_collections(
     video_remote_prefix=Types.String,
     sub_path=Types.String,
     session_ids_str=Types.String,
-    session_streams_str=Types.String
+    session_streams_str=Types.String,
 )
 @outputs(
-    video_remote_paths=[Types.String]
+    video_remote_paths=[Types.String],
 )
-@python_task
+@python_task(cache_version='1')
 def generate_video_full_remote_paths(
     video_remote_prefix, sub_path, session_ids_str, session_streams_str, video_remote_paths
 ):
