@@ -10,7 +10,6 @@ from utils.frame_sampling.luminance_sampling import luminance_sample_collection
 from utils.video_tools.video_to_frames import video_to_frames
 
 
-DEFAULT_REMOTE_PREFIX = "s3://lyft-modelbuilder/metadata/flytekubecondemo2019"
 SESSION_PATH_FORMAT = "{remote_prefix}/data/collections/{session_id}/{sub_path}/{stream_name}"
 # DEFAULT_SESSION_ID = (
 #     "1538521877,1538521964"
@@ -221,8 +220,7 @@ class DataPreparationWorkflow:
                         help="A string containing comma-separated IDs of video sessions to extract frames out of")
     session_streams_str = Input(Types.String, required=True,
                             help="A string containing comma-separated stream names of video sessions to extract frames out of")
-    video_remote_prefix = Input(Types.String, required=True, default=DEFAULT_REMOTE_PREFIX,
-                                help="The path prefix where all the raw videos are stored")
+    video_remote_prefix = Input(Types.String, required=True, help="The path prefix where all the raw videos are stored")
     sub_path = Input(Types.String, required=True,
                      help="The subpath where the streams are actually stored")
     sampling_random_seed = Input(Types.Integer, default=DEFAULT_RANDOM_SEED)
