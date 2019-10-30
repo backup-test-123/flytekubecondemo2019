@@ -90,7 +90,7 @@ def luminance_select_collection_worker(
     random_seed=Types.Integer
 )
 @outputs(
-    selected_image_blobs=[[Types.Blob]],
+    selected_image_mpblobs=[Types.MultiPartBlob],
     selected_file_names=[[Types.String]],
 )
 @dynamic_task(cache_version="1")
@@ -101,7 +101,7 @@ def luminance_select_collections(
     n_clusters,
     sample_size,
     random_seed,
-    selected_image_blobs,
+    selected_image_mpblobs,
     selected_file_names,
 ):
     """
@@ -119,8 +119,8 @@ def luminance_select_collections(
         )
         for raw_frames_mpblob in raw_frames_mpblobs
     ]
-    selected_image_blobs.set(
-        [sub_task.outputs.selected_image_blobs for sub_task in sub_tasks]
+    selected_image_mpblobs.set(
+        [sub_task.outputs.selected_image_mpblob for sub_task in sub_tasks]
     )
     selected_file_names.set(
         [sub_task.outputs.selected_file_names for sub_task in sub_tasks]
@@ -239,7 +239,7 @@ class DataPreparationWorkflow:
     )
 
     luminance_select_collections_task = luminance_select_collections(
-        raw_frames_mpblobs=extract_from_video_collection_task.outputs.raw_frames_multipartblobs,
+        raw_frames_mpblobs=extract_from_video_collection_task.outputs.raw_frames_mpblobs,
         corresponding_videos_paths=extract_from_video_collection_task.outputs.video_paths,
         n_clusters=sampling_n_clusters,
         sample_size=sampling_sample_size,
