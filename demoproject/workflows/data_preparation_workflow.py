@@ -6,8 +6,8 @@ from flytekit.common import utils as flytekit_utils
 from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, dynamic_task, outputs, inputs
 from flytekit.sdk.workflow import workflow_class, Output, Input
-from demoproject.utils.frame_sampling.luminance_sampling import luminance_sample_collection
-from demoproject.utils.video_tools.video_to_frames import video_to_frames
+from utils.frame_sampling.luminance_sampling import luminance_sample_collection
+from utils.video_tools.video_to_frames import video_to_frames
 
 
 DEFAULT_REMOTE_PREFIX = "s3://lyft-modelbuilder/metadata/flytekubecondemo2019"
