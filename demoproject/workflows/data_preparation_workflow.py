@@ -185,17 +185,20 @@ def extract_from_video_collections(
 @inputs(
     video_remote_prefix=Types.String,
     sub_path=Types.String,
-    session_ids=[Types.String],
-    session_streams=[Types.String]
+    session_ids_str=Types.String,
+    session_streams_str=Types.String
 )
 @outputs(
     video_remote_paths=[Types.String]
 )
 @python_task
 def generate_video_full_remote_paths(
-        video_remote_prefix, sub_path, session_ids, session_streams, video_remote_paths
+    video_remote_prefix, sub_path, session_ids_str, session_streams_str, video_remote_paths
 ):
     remote_paths = []
+
+    session_ids = session_ids_str.split(',')
+    session_streams = session_streams_str.split(',')
 
     video_path_info_pairs = zip(session_ids, session_streams)
 
@@ -213,10 +216,10 @@ def generate_video_full_remote_paths(
 
 @workflow_class
 class DataPreparationWorkflow:
-    session_ids = Input(Types.String, required=True,
-                        help="IDs of video sessions to extract frames out of")
-    session_streams = Input(Types.String, required=True,
-                            help="Stream names of video sessions to extract frames out of")
+    session_ids_str = Input(Types.String, required=True,
+                        help="A string containing comma-separated IDs of video sessions to extract frames out of")
+    session_streams_str = Input(Types.String, required=True,
+                            help="A string containing comma-separated stream names of video sessions to extract frames out of")
     video_remote_prefix = Input(Types.String, required=True, default=DEFAULT_REMOTE_PREFIX,
                                 help="The path prefix where all the raw videos are stored")
     sub_path = Input(Types.String, required=True,
@@ -228,8 +231,8 @@ class DataPreparationWorkflow:
     generate_video_full_remote_paths_task = generate_video_full_remote_paths(
         video_remote_prefix=video_remote_prefix,
         sub_path=sub_path,
-        session_ids=session_ids,
-        session_streams=session_streams,
+        session_ids_str=session_ids_str,
+        session_streams_str=session_streams_str,
     )
 
     extract_from_video_collection_task = extract_from_video_collections(
