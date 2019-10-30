@@ -182,6 +182,7 @@ def extract_from_video_collections(
     raw_frames_mpblobs.set([sub_tasks.outputs.image_blobs for sub_tasks in sub_tasks])
     video_paths.set(t.outputs.video_file_name for t in sub_tasks)
 
+
 @inputs(
     video_remote_prefix=Types.String,
     sub_path=Types.String,
@@ -193,7 +194,7 @@ def extract_from_video_collections(
 )
 @python_task(cache_version='1')
 def generate_video_full_remote_paths(
-    video_remote_prefix, sub_path, session_ids_str, session_streams_str, video_remote_paths
+    wf_params, video_remote_prefix, sub_path, session_ids_str, session_streams_str, video_remote_paths
 ):
     remote_paths = []
 
