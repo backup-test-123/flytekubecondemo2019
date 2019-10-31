@@ -1,10 +1,11 @@
 FROM ubuntu:bionic
 
+# Run this before pip install
+RUN apt-get -y install libc-dev build-essential python3.7
+
 # Run this before dealing with our own virtualenv. The AWS CLI uses its own virtual environment
 RUN pip3 install awscli
 
-# Run this before pip install
-RUN apt-get -y install libc-dev build-essential
 
 WORKDIR /app
 ENV VENV /app/venv
