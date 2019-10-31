@@ -158,7 +158,7 @@ def extract_from_video_collection_worker(
     video_remote_paths=[Types.String]
 )
 @outputs(
-    raw_frames_mpblobs=[[Types.MultiPartBlob]],
+    raw_frames_mpblobs=[Types.MultiPartBlob],
     video_paths=[Types.String]
 )
 @dynamic_task(cache_version="1", memory_request='8000')
@@ -247,6 +247,6 @@ class DataPreparationWorkflow:
     )
 
     selected_frames_mpblobs = Output(luminance_select_collections_task.outputs.selected_image_mpblobs,
-                                     sdk_type=Types.MultiPartBlob)
+                                     sdk_type=[Types.MultiPartBlob])
     selected_frames_mpblobs_metadata = Output(luminance_select_collections_task.outputs.selected_file_names,
                                               sdk_type=[[Types.String]])
