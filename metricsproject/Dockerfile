@@ -1,4 +1,4 @@
-FROM python:3.8.0-alpine3.10
+FROM python:3.7.5-alpine3.10
 
 # Run this before dealing with our own virtualenv. The AWS CLI uses its own virtual environment
 RUN pip3 install awscli
