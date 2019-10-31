@@ -1,5 +1,5 @@
 export IMAGE_NAME=flytekubecondemo2019_metrics
-PROJECT=flytekubecondemo2019_metrics
+PROJECT=flytekubecondemo2019-metrics
 DOMAIN=development
 VERSION=$(shell ./version.sh)
 
