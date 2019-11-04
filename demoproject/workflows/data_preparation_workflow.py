@@ -218,11 +218,6 @@ def download_videos(
 @workflow_class
 class DataPreparationWorkflow:
     video_external_paths = Input(Types.String, required=True)
-    session_ids_str = Input(Types.String, required=True,
-                        help="A string containing comma-separated IDs of video sessions to extract frames out of")
-    session_streams_str = Input(Types.String, required=True,
-                            help="A string containing comma-separated stream names of video sessions to extract frames out of")
-    video_remote_prefix = Input(Types.String, required=True, help="The path prefix where all the raw videos are stored")
     sampling_random_seed = Input(Types.Integer, default=DEFAULT_RANDOM_SEED)
     sampling_n_clusters = Input(Types.Integer, default=DEFAULT_LUMINANCE_N_CLUSTERS)
     sampling_sample_size = Input(Types.Integer, default=DEFAULT_LUMINANCE_SAMPLE_SIZE)
