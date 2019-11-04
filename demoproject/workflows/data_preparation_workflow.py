@@ -136,7 +136,7 @@ def luminance_select_collections(
 )
 @python_task(cache_version="1", memory_request='8000')
 def extract_from_video_collection_worker(
-    wf_params, video_blob, raw_frames_mpblob, video_file_name
+    wf_params, video_blob, raw_frames_mpblob,
 ):
 
     with wf_params.working_directory_get_named_tempfile("input.avi") as video_local_path:
