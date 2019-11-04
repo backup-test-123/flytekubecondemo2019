@@ -13,10 +13,12 @@ for stream in video_streams:
     fullpath = PATH_FORMAT.format(remote_bucket=REMOTE_BUCKET, stream_name=stream)
     video_full_paths.append(fullpath)
 
-video_full_paths_option_str = ",".join(video_full_paths)
+video_full_paths_option_str = ",".join(['"{p}"'.format(p=p) for p in video_full_paths])
 
 cmd = ('flyte-cli -p flytekubecondemo2019 -d development -h localhost:30081 --insecure execute-launch-plan '
-       '--urn lp:flytekubecondemo2019:development:workflows.data_preparation_workflow.DataPreparationWorkflow:96524f5682aa17b0703c294fd013ab233d6c1761 '
-       '-r changhonghsu --video_external_paths="{full_paths}"'.format(full_paths=video_full_paths_option_str))
+       '--urn lp:flytekubecondemo2019:development:workflows.data_preparation_workflow.DataPreparationWorkflow:8cf2d43e1b68aa9ae324dc2e86dbf8852646f865 '
+       '-r changhonghsu')
+
+cmd += ' -- video_external_paths=\'[{full_paths}]\''.format(full_paths=video_full_paths_option_str)
 
 print(cmd)
