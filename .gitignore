@@ -3,4 +3,4 @@
 .pyc
 __pycache__/
 */.idea
-demoproject/run_test.py
+*/run_test.py
