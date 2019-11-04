@@ -10,7 +10,8 @@ from utils.frame_sampling.luminance_sampling import luminance_sample_collection
 from utils.video_tools.video_to_frames import video_to_frames
 
 
-SESSION_PATH_FORMAT = "{remote_prefix}/data/collections/{session_id}/{sub_path}/{stream_name}"
+# SESSION_PATH_FORMAT = "{remote_prefix}/data/collections/{session_id}/{sub_path}/{stream_name}"
+SESSION_PATH_FORMAT = "{remote_prefix}/{dataset}/videos/{session_id}_{stream_name}"
 # DEFAULT_SESSION_ID = (
 #     "1538521877,1538521964"
 # )
@@ -184,7 +185,6 @@ def extract_from_video_collections(
 
 @inputs(
     video_remote_prefix=Types.String,
-    sub_path=Types.String,
     session_ids_str=Types.String,
     session_streams_str=Types.String,
 )
@@ -193,7 +193,7 @@ def extract_from_video_collections(
 )
 @python_task(cache_version='1')
 def generate_video_full_remote_paths(
-    wf_params, video_remote_prefix, sub_path, session_ids_str, session_streams_str, video_remote_paths
+    wf_params, video_remote_prefix, session_ids_str, session_streams_str, video_remote_paths
 ):
     remote_paths = []
 
@@ -216,20 +216,18 @@ def generate_video_full_remote_paths(
 
 @workflow_class
 class DataPreparationWorkflow:
+    video_external_paths = Input(Types.String, required=True)
     session_ids_str = Input(Types.String, required=True,
                         help="A string containing comma-separated IDs of video sessions to extract frames out of")
     session_streams_str = Input(Types.String, required=True,
                             help="A string containing comma-separated stream names of video sessions to extract frames out of")
     video_remote_prefix = Input(Types.String, required=True, help="The path prefix where all the raw videos are stored")
-    sub_path = Input(Types.String, required=True,
-                     help="The subpath where the streams are actually stored")
     sampling_random_seed = Input(Types.Integer, default=DEFAULT_RANDOM_SEED)
     sampling_n_clusters = Input(Types.Integer, default=DEFAULT_LUMINANCE_N_CLUSTERS)
     sampling_sample_size = Input(Types.Integer, default=DEFAULT_LUMINANCE_SAMPLE_SIZE)
 
     generate_video_full_remote_paths_task = generate_video_full_remote_paths(
         video_remote_prefix=video_remote_prefix,
-        sub_path=sub_path,
         session_ids_str=session_ids_str,
         session_streams_str=session_streams_str,
     )
