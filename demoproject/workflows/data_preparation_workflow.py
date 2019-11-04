@@ -202,7 +202,7 @@ def download_video_worker(
 @outputs(
     video_blobs=[Types.Blob],
 )
-@dynamic_task(cache_version='1', memory_request='2000')
+@dynamic_task(cache_version='1', memory_request='800')
 def download_videos(
     wf_params, video_external_paths, video_blobs,
 ):
