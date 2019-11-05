@@ -138,12 +138,13 @@ def extract_from_video_collection_worker(
     wf_params, video_blob, raw_frames_mpblob,
 ):
 
-    with flytekit_utils.AutoDeletingTempDir("input_video").get_named_tempfile("input.avi") as video_local_path:
+    with flytekit_utils.AutoDeletingTempDir("input_video") as tempdir:
         with flytekit_utils.AutoDeletingTempDir("output_images") as local_output_dir:
-            Types.Blob.fetch(remote_path=video_blob.remote_path, local_path=video_local_path)
+            temp_input_video_file = tempdir.get_named_tempfile("input.avi")
+            Types.Blob.fetch(remote_path=video_blob.remote_path, local_path=temp_input_video_file)
 
             video_to_frames(
-                video_filename=video_local_path,
+                video_filename=temp_input_video_file,
                 output_dir=local_output_dir,
                 skip_if_dir_exists=False
             )
