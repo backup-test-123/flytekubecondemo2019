@@ -71,14 +71,14 @@ def luminance_select_collection_worker(
 
         luminance_sample_collection(
             raw_frames_dir=raw_frames_mpblob.local_path,
-            sampled_frames_out_dir=local_output_dir.local_path,
+            sampled_frames_out_dir=local_output_dir.name,
             n_clusters=n_clusters,
             sample_size=sample_size,
             logger=wf_params.logging,
             random_seed=random_seed,
         )
 
-        mpblob, selected_file_names_in_folder = create_multipartblob_from_folder(local_output_dir.local_path)
+        mpblob, selected_file_names_in_folder = create_multipartblob_from_folder(local_output_dir.name)
         selected_image_mpblob.set(mpblob)
         selected_file_names.set(selected_file_names_in_folder)
 
@@ -147,7 +147,7 @@ def extract_from_video_collection_worker(
             skip_if_dir_exists=False
         )
 
-        mpblob, files_names_list = create_multipartblob_from_folder(local_output_dir.local_path)
+        mpblob, files_names_list = create_multipartblob_from_folder(local_output_dir.name)
         raw_frames_mpblob.set(mpblob)
 
 
