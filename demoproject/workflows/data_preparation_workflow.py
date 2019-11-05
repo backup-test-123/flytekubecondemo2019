@@ -39,7 +39,7 @@ def create_multipartblob_from_folder(folder_path):
         file_basename = basename(local_filepath)
         with mpblob.create_part(file_basename) as fileobj:
             with open(local_filepath, mode='rb') as file:
-                fileobj.wirte(file.read())
+                fileobj.write(file.read())
         file_names.append(file_basename)
 
     return mpblob, file_names
