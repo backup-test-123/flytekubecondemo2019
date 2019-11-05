@@ -1,4 +1,4 @@
-git+git://github.com/lyft/flytekit@master#egg=flytekit[all]
+flytekit[all]=0.2.2
 opencv-python==4.1.1.26
 scikit-learn==0.20.4
 numpy
