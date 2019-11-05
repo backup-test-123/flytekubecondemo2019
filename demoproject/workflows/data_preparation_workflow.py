@@ -143,7 +143,7 @@ def extract_from_video_collection_worker(
 
         video_to_frames(
             video_filename=video_blob.local_path,
-            output_dir=local_output_dir,
+            output_dir=local_output_dir.name,
             skip_if_dir_exists=False
         )
 
