@@ -192,7 +192,8 @@ def extract_from_video_collections(
 def download_video_worker(
     wf_params, video_external_path, video_blob,
 ):
-    b = Types.Blob.fetch(video_external_path)
+    # avi_local = wf_params.working_directory.get_named_tempfile("input.avi")
+    b = Types.Blob.fetch(remote_path=video_external_path) #, local_path=avi_local)
     video_blob.set(b)
 
 
@@ -202,7 +203,7 @@ def download_video_worker(
 @outputs(
     video_blobs=[Types.Blob],
 )
-@dynamic_task(cache_version='1', memory_request='800')
+@dynamic_task(cache_version='1', memory_request='800Mi')
 def download_videos(
     wf_params, video_external_paths, video_blobs,
 ):
