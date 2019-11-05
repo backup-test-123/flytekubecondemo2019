@@ -134,7 +134,7 @@ def luminance_select_collections(
     raw_frames_mpblob=Types.MultiPartBlob,
     # video_file_name=Types.String,
 )
-@python_task(cache_version="1", memory_request='8000')
+@python_task(cache_version="1", memory_request='8000Mi')
 def extract_from_video_collection_worker(
     wf_params, video_blob, raw_frames_mpblob,
 ):
@@ -161,7 +161,7 @@ def extract_from_video_collection_worker(
     raw_frames_mpblobs=[Types.MultiPartBlob],
     video_paths=[Types.String]
 )
-@dynamic_task(cache_version="1", memory_request='8000')
+@dynamic_task(cache_version="1")
 def extract_from_video_collections(
     wf_params, video_blobs, raw_frames_mpblobs, video_paths
 ):
