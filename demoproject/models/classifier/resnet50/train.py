@@ -7,8 +7,8 @@ from keras.layers import Dense
 from keras.models import Model
 from keras.optimizers import Adam
 
-from app.constants.resnet50_constants import CHECKPOINT_FILE_NAME
-from app.constants.resnet50_constants import FINAL_FILE_NAME
+from models.classifier.resnet50.constants import CHECKPOINT_FILE_NAME
+from models.classifier.resnet50.constants import FINAL_FILE_NAME
 
 
 def print_dir(directory, logger):
