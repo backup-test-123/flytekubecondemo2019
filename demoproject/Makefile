@@ -16,6 +16,10 @@ register_sandbox: docker_push
 	kubectl delete job register || true
 	kubectl create job register --image=docker.io/lyft/${IMAGE_NAME}:${VERSION} -- /opt/flytekit_venv make register_sandbox_in_container
 
+.PHONY: execute_sandbox
+execute_sandbox:
+	flyte-cli -h localhost:30081 -p flytekubecondemo2019 -d development --insecure execute-launch-plan --urn lp:flytekubecondemo2019:development:workflows.data_preparation_workflow.DataPreparationWorkflow:${VERSION} -r demo -- video_external_paths='["s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/1537396662_cam-rgb-1.avi"]'
+
 .PHONY: register_staging_in_container
 register_staging_in_container:
 	pyflyte -p ${PROJECT} -d ${DOMAIN} --config /app/staging.config register workflows
