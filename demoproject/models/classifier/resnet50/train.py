@@ -76,14 +76,18 @@ def train_resnet50_model(
     classes = list(iter(batches.class_indices))
     model.layers.pop()
 
+    # Since we don't have much training data, we want to leverage the feature learned from a larger dataset, in this,
+    # case, imagenet. So we fine-tune based on a pre-trained weight by freezing the weights except for the last layer
     for layer in model.layers:
         layer.trainable = False
 
-    last = model.layers[-1].output
     # Attaching a fully-connected layer with softmax activation as the last layer to support multi-class classification
+    last = model.layers[-1].output
     x = Dense(len(classes), activation="softmax")(last)
 
-    finetuned_model = Model(model.input, x)
+    finetuned_model = Model(inputs=model.input, outputs=x)
+
+    # Compile the model with an optimizer, a loss function, and a list of metrics of choice
     finetuned_model.compile(
         optimizer=Adam(lr=0.00001),
         loss="categorical_crossentropy",
@@ -102,7 +106,7 @@ def train_resnet50_model(
         output_model_folder + "/" + CHECKPOINT_FILE_NAME, verbose=1, save_best_only=True
     )
 
-    # Train it!
+    # Train it
     finetuned_model.fit_generator(
         batches,
         steps_per_epoch=num_train_steps,
@@ -111,4 +115,5 @@ def train_resnet50_model(
         validation_data=val_batches,
         validation_steps=num_valid_steps,
     )
+
     finetuned_model.save(output_model_folder + "/" + FINAL_FILE_NAME)
