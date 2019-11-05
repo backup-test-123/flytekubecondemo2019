@@ -132,7 +132,6 @@ def luminance_select_collections(
 )
 @outputs(
     raw_frames_mpblob=Types.MultiPartBlob,
-    # video_file_name=Types.String,
 )
 @python_task(cache_version="1", memory_request='8000Mi')
 def extract_from_video_collection_worker(
@@ -159,11 +158,10 @@ def extract_from_video_collection_worker(
 )
 @outputs(
     raw_frames_mpblobs=[Types.MultiPartBlob],
-    video_paths=[Types.String]
 )
 @dynamic_task(cache_version="1")
 def extract_from_video_collections(
-    wf_params, video_blobs, raw_frames_mpblobs, video_paths
+    wf_params, video_blobs, raw_frames_mpblobs,
 ):
     """
     This is a driver task that kicks off the `extract_from_avi_collection_worker`s. It assumes that session_ids
@@ -178,8 +176,7 @@ def extract_from_video_collections(
         for video_blob in video_blobs
     ]
 
-    raw_frames_mpblobs.set([sub_tasks.outputs.image_blobs for sub_tasks in sub_tasks])
-    video_paths.set(t.outputs.video_file_name for t in sub_tasks)
+    raw_frames_mpblobs.set([sub_tasks.outputs.raw_frames_mpblob for sub_tasks in sub_tasks])
 
 
 @inputs(
