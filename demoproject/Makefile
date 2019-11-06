@@ -18,7 +18,7 @@ register_sandbox: docker_push
 
 .PHONY: execute_sandbox
 execute_sandbox:
-	flyte-cli -h localhost:30081 -p flytekubecondemo2019 -d development --insecure execute-launch-plan --urn lp:flytekubecondemo2019:development:workflows.data_preparation_workflow.DataPreparationWorkflow:${VERSION} -r demo -- video_external_paths='["s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/1537396662_cam-rgb-1.avi"]'
+	flyte-cli -h localhost:30081 -p flytekubecondemo2019 -d development --insecure execute-launch-plan --urn lp:flytekubecondemo2019:development:workflows.data_preparation_workflow.DataPreparationWorkflow:${VERSION} -r demo -- video_external_paths='["s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/1537396662_cam-rgb-1.avi","s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/1538521877_cam-rgb-1.avi","s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/1538523916_cam-rgb-2.avi"]'
 
 .PHONY: register_staging_in_container
 register_staging_in_container:
@@ -30,7 +30,7 @@ register_staging: docker_push
 
 .PHONY: execute_staging
 execute_staging:
-	flyte-cli -h flyte-staging.lyft.net -p flytekubecondemo2019 -d development execute-launch-plan --urn lp:flytekubecondemo2019:development:workflows.data_preparation_workflow.DataPreparationWorkflow:${VERSION} -r demo -- video_external_paths='["s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/1537396662_cam-rgb-1.avi"]'
+	flyte-cli -h flyte-staging.lyft.net -p flytekubecondemo2019 -d development execute-launch-plan --urn lp:flytekubecondemo2019:development:workflows.data_preparation_workflow.DataPreparationWorkflow:${VERSION} -r demo -- video_external_paths='["s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/1537396662_cam-rgb-1.avi","s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/1538521877_cam-rgb-1.avi","s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/1538523916_cam-rgb-2.avi"]'
 
 .PHONY: docker_build
 docker_build:
