@@ -10,39 +10,11 @@ from utils.frame_sampling.luminance_sampling import luminance_sample_collection
 from utils.video_tools.video_to_frames import video_to_frames
 
 
-# SESSION_PATH_FORMAT = "{remote_prefix}/data/collections/{session_id}/{sub_path}/{stream_name}"
 SESSION_PATH_FORMAT = "{remote_prefix}/{dataset}/videos/{session_id}_{stream_name}"
-# DEFAULT_SESSION_ID = (
-#     "1538521877,1538521964"
-# )
-# DEFAULT_INPUT_SUB_PATH = "raw"
-# DEFAULT_INPUT_STREAM = "cam-rgb-1.avi"
 
 DEFAULT_RANDOM_SEED = 0
-DEFAULT_LUMINANCE_N_CLUSTERS = 4
-DEFAULT_LUMINANCE_SAMPLE_SIZE = 2
-
-
-def create_multipartblob_from_folder(folder_path):
-    """
-    """
-    # Get the full paths of all the files, excluding sub-folders, under folder_path
-    onlyfiles = [
-        join(folder_path, f)
-        for f in sorted(listdir(folder_path))
-        if isfile(join(folder_path, f))
-    ]
-    mpblob = Types.MultiPartBlob()
-    file_names = []
-
-    for local_filepath in onlyfiles:
-        file_basename = basename(local_filepath)
-        with mpblob.create_part(file_basename) as fileobj:
-            with open(local_filepath, mode='rb') as file:
-                fileobj.wirte(file.read())
-        file_names.append(file_basename)
-
-    return mpblob, file_names
+DEFAULT_LUMINANCE_N_CLUSTERS = 8
+DEFAULT_LUMINANCE_SAMPLE_SIZE = 20
 
 
 @inputs(
@@ -78,8 +50,13 @@ def luminance_select_collection_worker(
             random_seed=random_seed,
         )
 
-        mpblob, selected_file_names_in_folder = create_multipartblob_from_folder(local_output_dir.name)
-        selected_image_mpblob.set(mpblob)
+        # Get the full paths of all the files, excluding sub-folders, under folder_path
+        selected_file_names_in_folder = [
+            f for f in sorted(listdir(local_output_dir.name))
+            if isfile(join(local_output_dir.name, f))
+        ]
+
+        selected_image_mpblob.set(local_output_dir.name)
         selected_file_names.set(selected_file_names_in_folder)
 
 
@@ -146,9 +123,7 @@ def extract_from_video_collection_worker(
             output_dir=local_output_dir.name,
             skip_if_dir_exists=False
         )
-
-        mpblob, files_names_list = create_multipartblob_from_folder(local_output_dir.name)
-        raw_frames_mpblob.set(mpblob)
+        raw_frames_mpblob.set(local_output_dir.name)
 
 
 @inputs(
