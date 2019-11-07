@@ -6,9 +6,52 @@ from flytekit.contrib.notebook import python_notebook
 DEFAULT_MODEL_CONFIG_PATH=
 DEFAULT_MODEL_OUTPUT_PATH=
 
-interactive_validate_model_config = python_notebook(notebook_path="../models/classifier/resnet50/train.ipynb")
-interactive_download_and_prepare_datasets = python_notebook(notebook_path="")
-interactive_train_on_dataset = python_notebook(notebook_path="../models/classifier/resnet50/train.ipynb")
+interactive_validate_model_config = python_notebook(
+    notebook_path="../models/classifier/resnet50/validate_model_config.ipynb",
+    inputs={
+        "model_config_path": Types.Blob,
+    },
+    outputs={
+        "model_config_string": Types.String,
+    },
+    cache=True,
+    cache_version="1",
+)
+
+interactive_download_and_prepare_datasets = python_notebook(
+    notebook_path="../models/classifier/resnet50/download_and_prepare_datasets.ipynb",
+    inputs={
+        "data_session_id": Types.String,
+        "sub_path": Types.String,
+        "stream_name": Types.String,
+        "stream_config_string": Types.String,
+    },
+    outputs={
+        "output_zip": Types.Blob,
+    },
+    memory_request="16Gi",
+    cpu_request="8",
+    cache=True,
+    cache_version="1",
+)
+
+interactive_train_on_datasets = python_notebook(
+    notebook_path="../models/classifier/resnet50/train.ipynb",
+    inputs={
+        "train_mpblobs": [Types.MultiPartBlob],
+        "validate_mpblobs": [Types.MultiPartBlob],
+        "model_config_string": Types.String,
+        "model_output_path": Types.String,
+    },
+    outputs={
+        "model_blobs": [Types.Blob],
+        "model_file_names": [Types.String],
+    },
+    memory_request="64Gi",
+    gpu_request="1",
+    cache=True,
+    cache_version="1",
+)
 
 @workflow_class
 class ClassifierTrainWorkflow:
