@@ -1,14 +1,17 @@
+import os
 import ujson
+import math
+import random
+from pathlib import Path
+
 from flytekit.sdk.workflow import workflow_class, Output, Input
 from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, dynamic_task, inputs, outputs
 from flytekit.contrib.notebook import python_notebook
+from flytekit.common import utils as flytekit_utils
 
 from models.classifier.resnet50.train_tasks import train_on_datasets
 from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution
-
-DEFAULT_MODEL_CONFIG_PATH=
-DEFAULT_MODEL_OUTPUT_PATH=
 
 SERVICE_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
@@ -26,154 +29,20 @@ interactive_validate_model_config = python_notebook(
     cache_version="1",
 )
 
-"""
-interactive_train_on_datasets = python_notebook(
-    notebook_path="../models/classifier/resnet50/train.ipynb",
-    inputs={
-        "train_mpblobs": [Types.MultiPartBlob],
-        "validate_mpblobs": [Types.MultiPartBlob],
-        "model_config_string": Types.String,
-        "model_output_path": Types.String,
-    },
-    outputs={
-        "model_blobs": [Types.Blob],
-        "model_file_names": [Types.String],
-    },
-    memory_request="64Gi",
-    gpu_request="1",
-    cache=True,
-    cache_version="1",
-)
-"""
-
-
-@inputs(
-    target_streams=[Types.String],
-    stream_config_string=Types.String,
-)
-@outputs(
-    output_zip=Types.Blob,
-)
-@python_task(cache=True, cache_version="1", memory_request="4Gi")
-def download_and_prepare_dataset_worker(
-        target_streams,
-        stream_config_string,
-        output_zip
-):
-    """
-    Take a dataset pair (collection_id, sub_path, and stream_name) and archive it all into 1 zip file
-    so the training workflow has a quicker time downloading it all
-    This also supports the sub-selection elements that exist in the config where we can sub-select a subset of
-    the content in that dataset
-    """
-
-    dataset_config_json = ujson.loads(stream_config_string)
-    tmp_folder = wf_params.working_directory.get_named_tempfile("input")
-    output_zip_file_name = wf_params.working_directory.get_named_tempfile("output.zip")
-
-    output_dir_path = Path(tmp_folder)
-    if output_dir_path.exists():
-        rmtree(tmp_folder)
-    output_dir_path.mkdir(0o777, parents=True, exist_ok=False)
-
-    s3_client = boto3.client("s3")
-    bucket = BUCKET_NAME
-    prefix = DATA_PATH_FORMAT.format(
-        collection_id=data_session_id, sub_path=sub_path, stream_name=stream_name
-    )
-
-    # List all objects within a S3 bucket path
-    start = dataset_config_json.get("start", 0)
-    end = dataset_config_json.get("end", 100)
-    every_n = dataset_config_json.get("every_n", 1)
-    every_n_offset = dataset_config_json.get("every_n_offset", 0)
-
-    dataset_keys = s3_list_contents_paginated(
-        s3_client=s3_client, bucket=bucket, prefix=prefix
-    )
-    dataset_size = len(dataset_keys)
-    # Loop through each file
-    for i in range(0, dataset_size):
-        # Get the file name
-        file = dataset_keys[i]
-        frame_id = should_include_frame_in_subset(
-            frame_key_name=file["Key"],
-            dataset_size=dataset_size,
-            subset_start=start,
-            subset_end=end,
-            subset_every_n=every_n,
-            subset_every_n_offset=every_n_offset,
-        )
-        if not frame_id:
-            continue
-
-        # download, with a more specific name to tmp
-        new_file_name = (
-            f"{tmp_folder}/Frame_{data_session_id}_{stream_name}_{frame_id:05d}.png"
-        )
-        print("downloading {} to {}".format(file["Key"], new_file_name))
-        s3_client.download_file(bucket, file["Key"], new_file_name)
-
-    zipdir(tmp_folder, output_zip_file_name)
-    zip_blob = Types.Blob()
-    with zip_blob as fileobj:
-        with open(output_zip_file_name, mode="rb") as file:  # b is important -> binary
-            fileobj.write(file.read())
-
-
-@inputs(
-    model_config_string=Types.String,
-    validation_streams_ratio=Types.Float,
-    metadata_path=Types.String,
-)
-@outputs(
-    train_data_mpblobs=[Types.MultiPartBlob],
-    validate_data_mpblobs=[Types.MultiPartBlob],
-)
-@dynamic_task(cache=True, cache_version="1")
-def download_and_prepare_datasets(
-    wf_params, model_config_string, train_zips_out, validate_zips_out
-):
-    model_config = ujson.loads(model_config_string)
-
-    dataset model_config.get("training_validation_datasets", {})
-
-
-    train_streams = flatten_session_sub_path_stream_tuple(
-        model_config.get("train_datasets", {})
-    )
-
-    validation_streams = flatten_session_sub_path_stream_tuple(
-        model_config.get("validation_datasets", {})
-    )
-
-    train_zips_out.set(
-        [
-            download_and_prepare_dataset_worker(
-                data_session_id=data_stream_config.collection_id,
-                sub_path=data_stream_config.sub_path,
-                stream_name=data_stream_config.stream_name,
-                stream_config_string=ujson.dumps(data_stream_config.stream_config),
-            ).outputs.output_zip
-            for data_stream_config in train_streams
-        ]
-    )
-    validate_zips_out.set(
-        [
-            download_and_prepare_dataset_worker(
-                data_session_id=data_stream_config.collection_id,
-                sub_path=data_stream_config.sub_path,
-                stream_name=data_stream_config.stream_name,
-                stream_config_string=ujson.dumps(data_stream_config.stream_config),
-            ).outputs.output_zip
-            for data_stream_config in validation_streams
-        ]
-    )
-
 DEFAULT_VALIDATION_DATA_RATIO=0.2
 
 
+def split_training_validation_streams(labeled_streams, validation_data_ratio):
+    n_validation_streams = {
+        c: int(math.ceil(len(labeled_streams[c]) * validation_data_ratio)) for c in labeled_streams.keys()
+    }
+    for _, s in labeled_streams.items():
+        random.shuffle(s)
 
+    validation_streams = {c: labeled_streams[c][:n_validation_streams[c]] for c in labeled_streams.keys()}
+    training_streams = {c: labeled_streams[c][n_validation_streams[c]:] for c in labeled_streams.keys()}
+
+    return training_streams, validation_streams
 
 
 @inputs(
@@ -182,8 +51,8 @@ DEFAULT_VALIDATION_DATA_RATIO=0.2
     validation_data_ratio=Types.Float,
 )
 @outputs(
-    training_clean_streams_mpblob=Types.MultiPartBlob,
-    training_dirty_streams_mpblob=Types.MultiPartBlob,
+    training_clean_mpblob=Types.MultiPartBlob,
+    training_dirty_mpblob=Types.MultiPartBlob,
     validation_dirty_mpblob=Types.MultiPartBlob,
     validation_dirty_mpblob=Types.MultiPartBlob,
 )
@@ -204,8 +73,58 @@ def rearrange_data(
         workflow_name=DATAPREP_WORKFLOW_NAME,
         SERVICE_INSTANCE=DEFAULT_SERVICE_INSTANCE,
     )
-    # Create a multipartblob for training_clean
 
+    available_streams_mpblobs = latest_dataprep_wf_execution.outputs["selected_frames_mpblobs"]
+    available_streams_names = latest_dataprep_wf_execution.outputs["selected_frames_stream_names"]
+
+    # Download the config file and metadata
+    training_validation_config_blob = Types.Blob.fetch(remote_path=training_validation_config_path)
+    training_validation_config_blob.download()
+    config = ujson.load(training_validation_config_blob.local_path)
+
+    streams_metadata_blob = Types.Blob.fetch(remote_path=streams_metadata_path)
+    streams_metadata_blob.download()
+    streams_metadata = ujson.load(streams_metadata_blob.local_path)
+
+    all_streams = streams_metadata.get("streams", {})
+    selections = config.get("train_validation_datasets", {})
+    training_validation_streams = [all_streams[s] for s in selections.keys()]
+
+    # Splitting the set of streams into validation and training
+    streams = {
+        "clean": [s for s in training_validation_streams if s["class"] == "clean"],
+        "dirty": [s for s in training_validation_streams if s["class"] == "dirty"],
+    }
+    training_streams, validation_streams = split_training_validation_streams(streams, validation_data_ratio)
+
+    # Download multipartblobs to the target folders and then upload it
+    with flytekit_utils.AutoDeletingTempDir("training") as training_dir:
+        for label in streams.keys():
+            output_dir = os.path.join(training_dir, label)
+
+            for stream in training_streams[label]:
+                idx = available_streams_names.index(stream)
+                mpblob = available_streams_mpblobs[idx]
+                mpblob.download(local_path=output_dir)
+
+            if label == "clean":
+                training_clean_mpblob.set(output_dir)
+            elif label == "dirty":
+                training_dirty_mpblob.set(output_dir)
+
+    with flytekit_utils.AutoDeletingTempDir("validation") as validation_dir:
+        for label in streams.keys():
+            output_dir = os.path.join(validation_dir, label)
+
+            for stream in validation_streams[label]:
+                idx = available_streams_names.index(stream)
+                mpblob = available_streams_mpblobs[idx]
+                mpblob.download(local_path=output_dir)
+
+            if label == "clean":
+                validation_clean_mpblob.set(output_dir)
+            elif label == "dirty":
+                validation_dirty_mpblob.set(output_dir)
 
 
 @workflow_class
@@ -221,10 +140,18 @@ class ClassifierTrainWorkflow:
         validation_data_ratio=validation_data_ratio,
     )
 
+    train_on_datasets_task = train_on_datasets(
+        training_clean_mpblobs=rearrange_data_task.outputs.training_clean_mpblobs,
+        training_dirty_mpblobs=rearrange_data_task.outputs.training_dirty_mpblobs,
+        validation_clean_mpblobs=rearrange_data_task.outputs.validation_clean_mpblobs,
+        validation_dirty_mpblobs=rearrange_data_task.outputs.validation_dirty_mpblobs,
+    )
 
+    trained_models = Output(train_on_datasets_task.outputs.model_blobs, sdk_type=[Types.Blob])
+    model_file_names = Output(train_on_datasets_task.outputs.model_files_names, sdk_type=[Types.String])
 
     # ------------------------------------------------------------
-
+    """
     interactive_validate_model_config_task = interactive_validate_model_config(
         model_config_path=model_config_path
     )
@@ -239,3 +166,4 @@ class ClassifierTrainWorkflow:
         model_config_string=interactive_validate_model_config_task.outputs.model_config_string,
         model_output_path=model_output_path,
     )
+    """
