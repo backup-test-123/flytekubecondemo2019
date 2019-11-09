@@ -33,11 +33,11 @@ def _get_workflow_latest_sha(service_name, workflow_name, service_instance):
     return wf_list[0].id.version
 
 
-def fetch_workflow_latest_execution(service_name, workflow_name, service_instance):
-    latest_execution_sha = _get_workflow_latest_sha(service_name, workflow_name, service_instance)
+def fetch_workflow_latest_execution(project, workflow_name, domain):
+    latest_execution_sha = _get_workflow_latest_sha(project, workflow_name, domain)
 
     return fetch_workflow_execution(
-        service_name=service_name, service_instance=service_instance, exec_id=latest_execution_sha)
+        project=project, domain=domain, exec_id=latest_execution_sha)
 
     """
     eid = Flyte2Identifier.WorkflowExecutionIdentifier(
@@ -51,9 +51,9 @@ def fetch_workflow_latest_execution(service_name, workflow_name, service_instanc
     return wf_exec
     """
 
-def fetch_workflow_execution(service_name, service_instance, exec_id):
+def fetch_workflow_execution(project, domain, exec_id):
     eid = Flyte2Identifier.WorkflowExecutionIdentifier(
-        project=service_name, domain=service_instance, name=exec_id)
+        project=project, domain=domain, name=exec_id)
     wf_exec = SdkWorkflowExecution.fetch(project=eid.project, domain=eid.domain, name=eid.name)
     wf_exec.sync()
 

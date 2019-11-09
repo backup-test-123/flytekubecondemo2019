@@ -9,7 +9,7 @@ from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.common import utils as flytekit_utils
 
 from models.classifier.resnet50.train_tasks import train_resnet50_model, download_data
-from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution
+from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution, fetch_workflow_execution
 from utils.flyte_utils.collect_blobs import collect_blobs
 
 from models.classifier.resnet50.constants import DEFAULT_IMG_SIZE
@@ -18,13 +18,14 @@ from models.classifier.resnet50.constants import DEFAULT_PATIENCE
 from models.classifier.resnet50.constants import DEFAULT_EPOCHS
 from models.classifier.resnet50.constants import DEFAULT_WEIGHTS
 
-SERVICE_NAME = "flytekubecondemo2019"
+DEFAULT_PROJECT_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
-DEFAULT_SERVICE_INSTANCE = "development"
+DEFAULT_DOMAIN = "development"
 
 DEFAULT_VALIDATION_DATA_RATIO = 0.2
 
 DEFAULT_TRAINING_VALIDATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config_demo.json"
+DEFAULT_DATAPREP_WF_EXECUTION_ID = "ff25dd48a39934dc5b96"
 
 def split_training_validation_streams(labeled_streams, validation_data_ratio):
     n_validation_streams = {
@@ -62,14 +63,11 @@ def rearrange_data(
         validation_dirty_mpblob,
 ):
     # Get the latest execution of the data_prep_workflow
-    latest_dataprep_wf_execution = fetch_workflow_latest_execution(
-        service_name=SERVICE_NAME,
-        workflow_name=DATAPREP_WORKFLOW_NAME,
-        service_instance=DEFAULT_SERVICE_INSTANCE,
-    )
+    dataprep_wf_execution = fetch_workflow_execution(
+        project=DEFAULT_PROJECT_NAME, domain=DEFAULT_DOMAIN, exec_id=DEFAULT_DATAPREP_WF_EXECUTION_ID)
 
-    available_streams_mpblobs = latest_dataprep_wf_execution.outputs["selected_frames_mpblobs"]
-    available_streams_names = latest_dataprep_wf_execution.inputs["streams_names_out"]
+    available_streams_mpblobs = dataprep_wf_execution.outputs["selected_frames_mpblobs"]
+    available_streams_names = dataprep_wf_execution.inputs["streams_names_out"]
 
     # Download the config file and metadata
     training_validation_config_blob = Types.Blob.fetch(remote_path=training_validation_config_path)
