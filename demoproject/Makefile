@@ -9,6 +9,7 @@ serialize:
 
 .PHONY: register_sandbox_in_container
 register_sandbox_in_container:
+	env
 	pyflyte -p ${PROJECT} -d ${DOMAIN} --config /app/sandbox.config register workflows
 
 .PHONY: register_sandbox
