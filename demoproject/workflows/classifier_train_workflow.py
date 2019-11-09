@@ -1,5 +1,8 @@
 from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, dynamic_task, inputs, outputs
+from flytekit.sdk.workflow import workflow_class, Output, Input
+
+DEFAULT_VALIDATION_DATA_RATIO = 0.2
 
 @inputs(
     training_validation_config_path=Types.String,  # The path to a json file listing the streams needed for training, and other parameters
@@ -88,3 +91,44 @@ def rearrange_data(
     training_dirty_mpblob.set(a)
     validation_clean_mpblob.set(a)
     validation_dirty_mpblob.set(a)
+
+
+@workflow_class
+class ClassifierTrainWorkflow:
+    training_validation_config_path = Input(Types.String, required=True)
+    streams_metadata_path = Input(Types.String, required=True)
+    validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
+
+    rearrange_data_task = rearrange_data(
+        training_validation_config_path=training_validation_config_path,
+        streams_metadata_path=streams_metadata_path,
+        validation_data_ratio=validation_data_ratio,
+    )
+    """
+    train_on_datasets_task = train_on_datasets(
+        training_clean_mpblob=rearrange_data_task.outputs.training_clean_mpblob,
+        training_dirty_mpblob=rearrange_data_task.outputs.training_dirty_mpblob,
+        validation_clean_mpblob=rearrange_data_task.outputs.validation_clean_mpblob,
+        validation_dirty_mpblob=rearrange_data_task.outputs.validation_dirty_mpblob,
+    )
+
+    trained_models = Output(train_on_datasets_task.outputs.model_blobs, sdk_type=[Types.Blob])
+    model_file_names = Output(train_on_datasets_task.outputs.model_files_names, sdk_type=[Types.String])
+    """
+    # ------------------------------------------------------------
+    """
+    interactive_validate_model_config_task = interactive_validate_model_config(
+        model_config_path=model_config_path
+    )
+
+    download_and_prepare_datasets_task = download_and_prepare_datasets(
+        model_config_string=interactive_validate_model_config_task.outputs.model_config_string
+    )
+
+    train_on_datasets_task = train_on_datasets(
+        train_data_mpblobs=download_and_prepare_datasets_task.outputs.train_data_mpblobs,
+        validation_data_mpblobs=download_and_prepare_datasets_task.outputs.validate_zips_out,
+        model_config_string=interactive_validate_model_config_task.outputs.model_config_string,
+        model_output_path=model_output_path,
+    )
+    """
