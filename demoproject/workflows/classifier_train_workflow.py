@@ -126,7 +126,7 @@ def rearrange_data(
                 validation_dirty_mpblob.set(output_dir)
 
 
-@workflow_class
+#@workflow_class
 class ClassifierTrainWorkflow:
 
     training_validation_config_path = Input(Types.String, required=True)
