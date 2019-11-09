@@ -134,7 +134,7 @@ def rearrange_data(
 
 
 
-#@workflow_class
+@workflow_class
 class ClassifierTrainWorkflow:
 
     training_validation_config_path = Input(Types.String, required=True)
