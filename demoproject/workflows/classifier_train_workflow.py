@@ -53,7 +53,7 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
 @outputs(
     training_clean_mpblob=Types.MultiPartBlob,
     training_dirty_mpblob=Types.MultiPartBlob,
-    validation_dirty_mpblob=Types.MultiPartBlob,
+    validation_clean_mpblob=Types.MultiPartBlob,
     validation_dirty_mpblob=Types.MultiPartBlob,
 )
 @python_task(cache=True, cache_version="1", memory_request="500Mi")
