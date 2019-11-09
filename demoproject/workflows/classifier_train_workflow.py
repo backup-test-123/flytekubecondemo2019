@@ -96,11 +96,16 @@ def rearrange_data(
     }
     training_streams, validation_streams = split_training_validation_streams(streams, validation_data_ratio)
 
+    print("training_streams:")
+    print(training_streams)
+    print("validation_streams:")
+    print(validation_streams)
+
     # Download multipartblobs to the target folders and then upload it
     with flytekit_utils.AutoDeletingTempDir("training") as training_dir:
         for label in streams.keys():
             output_dir = os.path.join(training_dir.name, label)
-
+            print("output dir: " + output_dir)
             for stream in training_streams[label]:
                 idx = available_streams_names.index(stream)
                 mpblob = available_streams_mpblobs[idx]
