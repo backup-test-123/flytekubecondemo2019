@@ -13,8 +13,7 @@ def _get_flyte2_client() -> Flyte2FriendlyClient.SynchronousFlyteClient:
     try:
         return _get_flyte2_client.flyte2_client  # type: ignore
     except AttributeError:
-        _get_flyte2_client.flyte2_client = Flyte2FriendlyClient.SynchronousFlyteClient(
-            platform_config.URL)  # type: ignore
+        _get_flyte2_client.flyte2_client = Flyte2FriendlyClient.SynchronousFlyteClient(platform_config.URL)  # type: ignore
         return _get_flyte2_client.flyte2_client  # type: ignore
 
 

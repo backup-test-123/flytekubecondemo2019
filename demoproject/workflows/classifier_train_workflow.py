@@ -1,20 +1,21 @@
 import os
+import ujson
 import math
 import random
-import ujson
+
+from flytekit.sdk.workflow import workflow_class, Output, Input
 from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, dynamic_task, inputs, outputs
-from flytekit.sdk.workflow import workflow_class, Output, Input
+from flytekit.common import utils as flytekit_utils
+
+from models.classifier.resnet50.train_tasks import train_on_datasets
 from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution
-# from flytekit.common import utils as flytekit_utils
 
-
-#DEFAULT_VALIDATION_DATA_RATIO = 0.2
-"""
 SERVICE_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
 DEFAULT_SERVICE_INSTANCE = "development"
-"""
+
+DEFAULT_VALIDATION_DATA_RATIO = 0.2
 
 
 def split_training_validation_streams(labeled_streams, validation_data_ratio):
@@ -52,9 +53,7 @@ def rearrange_data(
         validation_clean_mpblob,
         validation_dirty_mpblob,
 ):
-
     # Get the latest execution of the data_prep_workflow
-    """
     latest_dataprep_wf_execution = fetch_workflow_latest_execution(
         service_name=SERVICE_NAME,
         workflow_name=DATAPREP_WORKFLOW_NAME,
@@ -63,7 +62,6 @@ def rearrange_data(
 
     available_streams_mpblobs = latest_dataprep_wf_execution.outputs["selected_frames_mpblobs"]
     available_streams_names = latest_dataprep_wf_execution.outputs["selected_frames_stream_names"]
-    """
 
     # Download the config file and metadata
     training_validation_config_blob = Types.Blob.fetch(remote_path=training_validation_config_path)
@@ -85,7 +83,6 @@ def rearrange_data(
     }
     training_streams, validation_streams = split_training_validation_streams(streams, validation_data_ratio)
 
-    """
     # Download multipartblobs to the target folders and then upload it
     with flytekit_utils.AutoDeletingTempDir("training") as training_dir:
         for label in streams.keys():
@@ -114,28 +111,21 @@ def rearrange_data(
                 validation_clean_mpblob.set(output_dir)
             elif label == "dirty":
                 validation_dirty_mpblob.set(output_dir)
-    """
-
-    a = Types.MultiPartBlob()
-    training_clean_mpblob.set(a)
-    training_dirty_mpblob.set(a)
-    validation_clean_mpblob.set(a)
-    validation_dirty_mpblob.set(a)
-
 
 
 @workflow_class
 class ClassifierTrainWorkflow:
+
     training_validation_config_path = Input(Types.String, required=True)
     streams_metadata_path = Input(Types.String, required=True)
-    validation_data_ratio = Input(Types.Float, required=True)
+    validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
 
     rearrange_data_task = rearrange_data(
         training_validation_config_path=training_validation_config_path,
         streams_metadata_path=streams_metadata_path,
         validation_data_ratio=validation_data_ratio,
     )
-    """
+
     train_on_datasets_task = train_on_datasets(
         training_clean_mpblob=rearrange_data_task.outputs.training_clean_mpblob,
         training_dirty_mpblob=rearrange_data_task.outputs.training_dirty_mpblob,
@@ -145,7 +135,7 @@ class ClassifierTrainWorkflow:
 
     trained_models = Output(train_on_datasets_task.outputs.model_blobs, sdk_type=[Types.Blob])
     model_file_names = Output(train_on_datasets_task.outputs.model_files_names, sdk_type=[Types.String])
-    """
+
     # ------------------------------------------------------------
     """
     interactive_validate_model_config_task = interactive_validate_model_config(
