@@ -5,14 +5,16 @@ import ujson
 from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, dynamic_task, inputs, outputs
 from flytekit.sdk.workflow import workflow_class, Output, Input
-from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution
-from flytekit.common import utils as flytekit_utils
+# from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution
+# from flytekit.common import utils as flytekit_utils
 
 
 #DEFAULT_VALIDATION_DATA_RATIO = 0.2
+"""
 SERVICE_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
 DEFAULT_SERVICE_INSTANCE = "development"
+"""
 
 
 def split_training_validation_streams(labeled_streams, validation_data_ratio):
