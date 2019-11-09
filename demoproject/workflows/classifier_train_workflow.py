@@ -110,7 +110,7 @@ def rearrange_data(
             for stream in training_streams[label]:
                 idx = available_streams_names.index(stream)
                 mpblob = available_streams_mpblobs[idx]
-                mpblob.download(local_path=output_dir)
+                mpblob.download(local_path=output_dir, overwrite=True)
 
             if label == "clean":
                 training_clean_mpblob.set(output_dir)
@@ -124,7 +124,7 @@ def rearrange_data(
             for stream in validation_streams[label]:
                 idx = available_streams_names.index(stream)
                 mpblob = available_streams_mpblobs[idx]
-                mpblob.download(local_path=output_dir)
+                mpblob.download(local_path=output_dir, overwrite=True)
 
             if label == "clean":
                 validation_clean_mpblob.set(output_dir)
