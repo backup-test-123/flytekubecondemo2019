@@ -87,12 +87,13 @@ def rearrange_data(
     selections = config.get("train_validation_datasets", {})
     wf_params.logging.info("selections: ")
     wf_params.logging.info(selections)
-    training_validation_streams = [all_streams[s] for s in selections.keys()]
+    training_validation_streams = [{"stream": name, "class": metadata["class"]} for name, metadata in all_streams.items()
+                                   if name in selections.keys()]
 
     # Splitting the set of streams into validation and training
     streams = {
-        "clean": [s for s in training_validation_streams if s["class"] == "clean"],
-        "dirty": [s for s in training_validation_streams if s["class"] == "dirty"],
+        "clean": [s["stream"] for s in training_validation_streams if s["class"] == "clean"],
+        "dirty": [s["stream"] for s in training_validation_streams if s["class"] == "dirty"],
     }
     training_streams, validation_streams = split_training_validation_streams(streams, validation_data_ratio)
 
