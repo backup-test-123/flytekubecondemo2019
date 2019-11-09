@@ -1,8 +1,32 @@
+import os
+import math
+import random
+import ujson
 from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, dynamic_task, inputs, outputs
 from flytekit.sdk.workflow import workflow_class, Output, Input
+from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution
+from flytekit.common import utils as flytekit_utils
+
 
 DEFAULT_VALIDATION_DATA_RATIO = 0.2
+SERVICE_NAME = "flytekubecondemo2019"
+DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
+DEFAULT_SERVICE_INSTANCE = "development"
+
+
+def split_training_validation_streams(labeled_streams, validation_data_ratio):
+    n_validation_streams = {
+        c: int(math.ceil(len(labeled_streams[c]) * validation_data_ratio)) for c in labeled_streams.keys()
+    }
+    for _, s in labeled_streams.items():
+        random.shuffle(s)
+
+    validation_streams = {c: labeled_streams[c][:n_validation_streams[c]] for c in labeled_streams.keys()}
+    training_streams = {c: labeled_streams[c][n_validation_streams[c]:] for c in labeled_streams.keys()}
+
+    return training_streams, validation_streams
+
 
 @inputs(
     training_validation_config_path=Types.String,  # The path to a json file listing the streams needed for training, and other parameters
@@ -26,7 +50,7 @@ def rearrange_data(
         validation_clean_mpblob,
         validation_dirty_mpblob,
 ):
-    """
+
     # Get the latest execution of the data_prep_workflow
     latest_dataprep_wf_execution = fetch_workflow_latest_execution(
         service_name=SERVICE_NAME,
@@ -91,6 +115,7 @@ def rearrange_data(
     training_dirty_mpblob.set(a)
     validation_clean_mpblob.set(a)
     validation_dirty_mpblob.set(a)
+    """
 
 
 @workflow_class
