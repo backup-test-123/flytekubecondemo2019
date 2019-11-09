@@ -74,11 +74,9 @@ def rearrange_data(
 
     # Download the config file and metadata
     training_validation_config_blob = Types.Blob.fetch(remote_path=training_validation_config_path)
-    training_validation_config_blob.download()
     config = ujson.load(training_validation_config_blob.local_path)
 
     streams_metadata_blob = Types.Blob.fetch(remote_path=streams_metadata_path)
-    streams_metadata_blob.download()
     streams_metadata = ujson.load(streams_metadata_blob.local_path)
 
     all_streams = streams_metadata.get("streams", {})
