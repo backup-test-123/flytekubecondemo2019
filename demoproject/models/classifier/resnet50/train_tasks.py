@@ -15,13 +15,7 @@ from flytekit.sdk.types import Types
 
 from models.classifier.resnet50.constants import CHECKPOINT_FILE_NAME
 from models.classifier.resnet50.constants import FINAL_FILE_NAME
-from models.classifier.resnet50.constants import DEFAULT_IMG_SIZE
-from models.classifier.resnet50.constants import DEFAULT_BATCH_SIZE
-from models.classifier.resnet50.constants import DEFAULT_CLASS_LABELS
-from models.classifier.resnet50.constants import DEFAULT_POSITIVE_LABEL
-from models.classifier.resnet50.constants import DEFAULT_PATIENCE
-from models.classifier.resnet50.constants import DEFAULT_EPOCHS
-from models.classifier.resnet50.constants import DEFAULT_WEIGHTS
+
 
 from os.path import join, isfile, basename
 from os import listdir
@@ -30,25 +24,6 @@ from os import listdir
 def print_dir(directory, logger):
     for r, d, files in os.walk(directory):
         logger.info(r, d, files)
-
-
-def collect_blobs(folder_path):
-    onlyfiles = [
-        join(folder_path, f)
-        for f in sorted(listdir(folder_path))
-        if isfile(join(folder_path, f))
-    ]
-    my_blobs = []
-    file_names = []
-    for local_filepath in onlyfiles:
-
-        my_blob = Types.Blob()
-        with my_blob as fileobj:
-            with open(local_filepath, mode="rb") as file:  # b is important -> binary
-                fileobj.write(file.read())
-        my_blobs.append(my_blob)
-        file_names.append(basename(local_filepath))
-    return my_blobs, file_names
 
 
 # Training function
@@ -158,70 +133,3 @@ def download_data(base_dir, mpblobs):
     for label, mpblob in mpblobs:
         dir = os.path.join(base_dir, label)
         mpblob.download(local_path=dir)
-
-
-@inputs(
-    training_clean_mpblob=Types.MultiPartBlob,
-    training_dirty_mpblob=Types.MultiPartBlob,
-    validation_clean_mpblob=Types.MultiPartBlob,
-    validation_dirty_mpblob=Types.MultiPartBlob,
-)
-@outputs(
-    model_blobs=[Types.Blob],
-    model_files_names=[Types.String],
-)
-@python_task(cache=True, cache_version="1", gpu_request="1", memory_request="64Gi")
-def train_on_datasets(
-        wf_params,
-        training_clean_mpblob,
-        validation_clean_mpblob,
-        training_dirty_mpblob,
-        validation_dirty_mpblob,
-        model_blobs,
-        model_files_names,
-):
-
-    with flytekit_utils.AutoDeletingTempDir("output_models") as output_models_dir:
-        with flytekit_utils.AutoDeletingTempDir("training") as training_dir:
-            with flytekit_utils.AutoDeletingTempDir("validation") as validation_dir:
-                download_data(training_dir.name, {"clean": training_clean_mpblob, "dirty": training_dirty_mpblob})
-                download_data(validation_dir.name, {"clean": validation_clean_mpblob, "dirty": validation_dirty_mpblob})
-
-                train_resnet50_model(
-                    train_directory=training_dir.name,
-                    validation_directory=validation_dir.name,
-                    output_model_folder=output_models_dir.name,
-                    logger=wf_params.logging,
-                    patience=DEFAULT_PATIENCE,
-                    size=DEFAULT_IMG_SIZE,
-                    batch_size=DEFAULT_BATCH_SIZE,
-                    epochs=DEFAULT_EPOCHS,
-                    weights=DEFAULT_WEIGHTS,
-                )
-                # save results to Workflow output
-                blobs, files_names_list = collect_blobs(output_models_dir.name)
-                model_blobs.set(blobs)
-                model_files_names.set(files_names_list)
-
-    """
-    # write results to storage path also
-    for file in files_names_list:
-        location = model_output_path + file
-        out_blob = Types.Blob.create_at_known_location(location)
-
-        with out_blob as out_writer:
-            with open(output_folder + "/" + file, mode="rb") as in_reader:
-                out_writer.write(in_reader.read())
-
-    # keep the model_config with the trained model
-    location = model_output_path + MODEL_CONFIG_FILE_NAME
-    out_blob = Types.Blob.create_at_known_location(location)
-    with out_blob as out_writer:
-        out_writer.write((model_config_string).encode("utf-8"))
-
-    # write metadata to track what execution this was done by
-    location = model_output_path + MODEL_GENERATED_BY_FILE_NAME
-    out_blob = Types.Blob.create_at_known_location(location)
-    with out_blob as out_writer:
-        out_writer.write((f"workflow_id: {wf_params.execution_id}").encode("utf-8"))
-    """
