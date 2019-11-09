@@ -41,7 +41,6 @@ def video_to_frames(video_filename, output_dir, skip_if_dir_exists=False):
             video_filename, output_dir
         )
     )
-    print("format: {output_dir}/{video_basename}_frame-{}.png".format(output_dir=output_dir, video_basename=video_basename))
     while success:
         cv2.imwrite(f"{output_dir}/{video_basename}_frame-{count:05d}.png", image)
         success, image = vidcap.read()
