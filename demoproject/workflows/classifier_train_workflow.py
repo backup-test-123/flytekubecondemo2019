@@ -55,7 +55,7 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
     validation_clean_mpblob=Types.MultiPartBlob,
     validation_dirty_mpblob=Types.MultiPartBlob,
 )
-@python_task(cache=True, cache_version="1", memory_request="500Mi")
+@python_task(cache=True, cache_version="1")
 def rearrange_data(
         wf_params,
         training_validation_config_path,
@@ -70,7 +70,7 @@ def rearrange_data(
     latest_dataprep_wf_execution = fetch_workflow_latest_execution(
         service_name=SERVICE_NAME,
         workflow_name=DATAPREP_WORKFLOW_NAME,
-        SERVICE_INSTANCE=DEFAULT_SERVICE_INSTANCE,
+        service_instance=DEFAULT_SERVICE_INSTANCE,
     )
 
     available_streams_mpblobs = latest_dataprep_wf_execution.outputs["selected_frames_mpblobs"]
