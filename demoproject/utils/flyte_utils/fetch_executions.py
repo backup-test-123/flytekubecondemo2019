@@ -7,8 +7,7 @@ from flytekit.models import filters as Flyte2Filters
 from flytekit.models.admin import common as FlyteAdminCommon
 from flytekit.clients import friendly as Flyte2FriendlyClient
 
-FLYTE_PLATFORM_URL = 'flyte.lyft.net'
-os.environ['FLYTE_PLATFORM_URL'] = FLYTE_PLATFORM_URL  # Flyte Client needs this
+FLYTE_PLATFORM_URL = os.environ['FLYTE_PLATFORM_URL']
 
 
 def _get_flyte2_client() -> Flyte2FriendlyClient.SynchronousFlyteClient:
