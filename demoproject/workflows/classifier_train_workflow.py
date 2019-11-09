@@ -66,6 +66,9 @@ def rearrange_data(
     dataprep_wf_execution = fetch_workflow_execution(
         project=DEFAULT_PROJECT_NAME, domain=DEFAULT_DOMAIN, exec_id=DEFAULT_DATAPREP_WF_EXECUTION_ID)
 
+    print("Data Prep Workflow:")
+    print(dataprep_wf_execution)
+
     available_streams_mpblobs = dataprep_wf_execution.outputs["selected_frames_mpblobs"]
     available_streams_names = dataprep_wf_execution.inputs["streams_names_out"]
 
