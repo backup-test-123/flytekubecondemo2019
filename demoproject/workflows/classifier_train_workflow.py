@@ -78,7 +78,7 @@ def rearrange_data(
     config = ujson.load(config_fp)
 
     streams_metadata_blob = Types.Blob.fetch(remote_path=streams_metadata_path)
-    metadata_fp = open(training_validation_config_blob.local_path)
+    metadata_fp = open(streams_metadata_blob.local_path)
     streams_metadata = ujson.load(metadata_fp)
 
     all_streams = streams_metadata.get("streams", {})
