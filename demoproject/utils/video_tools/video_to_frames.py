@@ -1,3 +1,4 @@
+from os.path import basename
 from pathlib import Path
 from shutil import rmtree
 
@@ -6,6 +7,7 @@ import cv2
 
 def video_to_frames(video_filename, output_dir, skip_if_dir_exists=False):
     output_dir_path = Path(output_dir)
+    video_basename = basename(video_filename)
     if skip_if_dir_exists is True and output_dir_path.exists():
         print(
             "Frame directory '{}' exists. "
@@ -33,7 +35,7 @@ def video_to_frames(video_filename, output_dir, skip_if_dir_exists=False):
     )
 
     while success:
-        cv2.imwrite(f"{output_dir}/Frame_{count:05d}.png", image)
+        cv2.imwrite(f"{output_dir}/{video_basename}_frame-{count:05d}.png", image)
         success, image = vidcap.read()
         count += 1
 

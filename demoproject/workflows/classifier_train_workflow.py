@@ -5,7 +5,7 @@ import random
 
 from flytekit.sdk.workflow import workflow_class, Output, Input
 from flytekit.sdk.types import Types
-from flytekit.sdk.tasks import python_task, dynamic_task, inputs, outputs
+from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.common import utils as flytekit_utils
 
 from models.classifier.resnet50.train_tasks import train_resnet50_model, download_data
@@ -14,8 +14,6 @@ from utils.flyte_utils.collect_blobs import collect_blobs
 
 from models.classifier.resnet50.constants import DEFAULT_IMG_SIZE
 from models.classifier.resnet50.constants import DEFAULT_BATCH_SIZE
-from models.classifier.resnet50.constants import DEFAULT_CLASS_LABELS
-from models.classifier.resnet50.constants import DEFAULT_POSITIVE_LABEL
 from models.classifier.resnet50.constants import DEFAULT_PATIENCE
 from models.classifier.resnet50.constants import DEFAULT_EPOCHS
 from models.classifier.resnet50.constants import DEFAULT_WEIGHTS
@@ -70,7 +68,7 @@ def rearrange_data(
     )
 
     available_streams_mpblobs = latest_dataprep_wf_execution.outputs["selected_frames_mpblobs"]
-    available_streams_names = latest_dataprep_wf_execution.outputs["selected_frames_stream_names"]
+    available_streams_names = latest_dataprep_wf_execution.inputs["streams_names_out"]
 
     # Download the config file and metadata
     training_validation_config_blob = Types.Blob.fetch(remote_path=training_validation_config_path)

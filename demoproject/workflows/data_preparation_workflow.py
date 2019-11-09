@@ -10,7 +10,7 @@ from utils.frame_sampling.luminance_sampling import luminance_sample_collection
 from utils.video_tools.video_to_frames import video_to_frames
 
 
-SESSION_PATH_FORMAT = "{remote_prefix}/{dataset}/videos/{session_id}_{stream_name}"
+STREAM_EXTERNAL_PATH_FORMAT = "{remote_prefix}/{stream_name}.{stream_extension}"
 
 DEFAULT_RANDOM_SEED = 0
 DEFAULT_LUMINANCE_N_CLUSTERS = 8
@@ -169,18 +169,26 @@ def download_video_worker(
 
 
 @inputs(
-    video_external_paths=[Types.String],
+    streams_external_storage_prefix=Types.String,
+    streams_names=[Types.String],
+    stream_extension=Types.String,
 )
 @outputs(
     video_blobs=[Types.Blob],
 )
 @dynamic_task(cache_version='1', memory_request='800Mi')
 def download_videos(
-    wf_params, video_external_paths, video_blobs,
+    wf_params, streams_external_storage_prefix, streams_names, stream_extension, video_blobs,
 ):
     blobs = []
-    for ext_path in video_external_paths:
-        download_task = download_video_worker(video_external_path=ext_path)
+
+    for stream_name in streams_names:
+        stream_external_path = STREAM_EXTERNAL_PATH_FORMAT.format(
+            remote_prefix=streams_external_storage_prefix,
+            stream_name=stream_name,
+            stream_extension=stream_extension,
+        )
+        download_task = download_video_worker(video_external_path=stream_external_path)
         yield download_task
         blobs.append(download_task.outputs.video_blob)
 
@@ -189,15 +197,19 @@ def download_videos(
 
 @workflow_class
 class DataPreparationWorkflow:
-    #video_external_prefix = Input(Types.String, required=True)
-    video_external_paths = Input([Types.String], required=True)
-    #streams_names = Input([Types.String], required=True)
+    streams_external_storage_prefix = Input(Types.String, required=True)
+    streams_names = Input([Types.String], required=True)
+    stream_extension = Input(Types.String, default="avi")
+
+    # video_external_paths = Input([Types.String], required=True)
     sampling_random_seed = Input(Types.Integer, default=DEFAULT_RANDOM_SEED)
     sampling_n_clusters = Input(Types.Integer, default=DEFAULT_LUMINANCE_N_CLUSTERS)
     sampling_sample_size = Input(Types.Integer, default=DEFAULT_LUMINANCE_SAMPLE_SIZE)
 
     download_video_task = download_videos(
-        video_external_paths=video_external_paths,
+        streams_external_storage_prefix=streams_external_storage_prefix,
+        streams_names=streams_names,
+        stream_extension=stream_extension,
     )
 
     extract_from_video_collection_task = extract_from_video_collections(
@@ -215,4 +227,5 @@ class DataPreparationWorkflow:
                                      sdk_type=[Types.MultiPartBlob])
     selected_frames_mpblobs_metadata = Output(luminance_select_collections_task.outputs.selected_file_names,
                                               sdk_type=[[Types.String]])
-    #selected_frams_stream_names = Output()
+    streams_names_out = Output(streams_names, sdk_type=[Types.String])
+
