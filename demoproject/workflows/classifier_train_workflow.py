@@ -99,7 +99,7 @@ def rearrange_data(
     # Download multipartblobs to the target folders and then upload it
     with flytekit_utils.AutoDeletingTempDir("training") as training_dir:
         for label in streams.keys():
-            output_dir = os.path.join(training_dir, label)
+            output_dir = os.path.join(training_dir.name, label)
 
             for stream in training_streams[label]:
                 idx = available_streams_names.index(stream)
@@ -113,7 +113,7 @@ def rearrange_data(
 
     with flytekit_utils.AutoDeletingTempDir("validation") as validation_dir:
         for label in streams.keys():
-            output_dir = os.path.join(validation_dir, label)
+            output_dir = os.path.join(validation_dir.name, label)
 
             for stream in validation_streams[label]:
                 idx = available_streams_names.index(stream)
