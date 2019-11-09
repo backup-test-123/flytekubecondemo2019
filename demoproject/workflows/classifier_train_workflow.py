@@ -140,10 +140,10 @@ class ClassifierTrainWorkflow:
     )
 
     train_on_datasets_task = train_on_datasets(
-        training_clean_mpblobs=rearrange_data_task.outputs.training_clean_mpblobs,
-        training_dirty_mpblobs=rearrange_data_task.outputs.training_dirty_mpblobs,
-        validation_clean_mpblobs=rearrange_data_task.outputs.validation_clean_mpblobs,
-        validation_dirty_mpblobs=rearrange_data_task.outputs.validation_dirty_mpblobs,
+        training_clean_mpblob=rearrange_data_task.outputs.training_clean_mpblob,
+        training_dirty_mpblob=rearrange_data_task.outputs.training_dirty_mpblob,
+        validation_clean_mpblob=rearrange_data_task.outputs.validation_clean_mpblob,
+        validation_dirty_mpblob=rearrange_data_task.outputs.validation_dirty_mpblob,
     )
 
     trained_models = Output(train_on_datasets_task.outputs.model_blobs, sdk_type=[Types.Blob])

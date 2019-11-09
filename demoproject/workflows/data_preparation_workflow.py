@@ -189,7 +189,9 @@ def download_videos(
 
 @workflow_class
 class DataPreparationWorkflow:
+    #video_external_prefix = Input(Types.String, required=True)
     video_external_paths = Input([Types.String], required=True)
+    #streams_names = Input([Types.String], required=True)
     sampling_random_seed = Input(Types.Integer, default=DEFAULT_RANDOM_SEED)
     sampling_n_clusters = Input(Types.Integer, default=DEFAULT_LUMINANCE_N_CLUSTERS)
     sampling_sample_size = Input(Types.Integer, default=DEFAULT_LUMINANCE_SAMPLE_SIZE)
@@ -213,3 +215,4 @@ class DataPreparationWorkflow:
                                      sdk_type=[Types.MultiPartBlob])
     selected_frames_mpblobs_metadata = Output(luminance_select_collections_task.outputs.selected_file_names,
                                               sdk_type=[[Types.String]])
+    #selected_frams_stream_names = Output()

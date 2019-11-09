@@ -161,10 +161,10 @@ def download_data(base_dir, mpblobs):
 
 
 @inputs(
-    training_clean_mpblobs=[Types.MultiPartBlob],
-    training_dirty_mpblobs=[Types.MultiPartBlob],
-    validation_clean_mpblobs=[Types.MultiPartBlob],
-    validation_dirty_mpblobs=[Types.MultiPartBlob],
+    training_clean_mpblob=Types.MultiPartBlob,
+    training_dirty_mpblob=Types.MultiPartBlob,
+    validation_clean_mpblob=Types.MultiPartBlob,
+    validation_dirty_mpblob=Types.MultiPartBlob,
 )
 @outputs(
     model_blobs=[Types.Blob],
