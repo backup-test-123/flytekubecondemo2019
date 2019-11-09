@@ -117,7 +117,7 @@ def extract_from_video_collection_worker(
 
     with flytekit_utils.AutoDeletingTempDir("output_images") as local_output_dir:
         # To keep the original basename visible. Optional
-        video_local_path = join(local_output_dir.name, basename(video_blob))
+        video_local_path = join(local_output_dir.name, basename(video_blob.remote_location))
         video_blob.download(local_path=video_local_path)
 
         video_to_frames(
