@@ -9,7 +9,7 @@ from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution
 from flytekit.common import utils as flytekit_utils
 
 
-DEFAULT_VALIDATION_DATA_RATIO = 0.2
+#DEFAULT_VALIDATION_DATA_RATIO = 0.2
 SERVICE_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
 DEFAULT_SERVICE_INSTANCE = "development"
@@ -122,7 +122,7 @@ def rearrange_data(
 class ClassifierTrainWorkflow:
     training_validation_config_path = Input(Types.String, required=True)
     streams_metadata_path = Input(Types.String, required=True)
-    validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
+    validation_data_ratio = Input(Types.Float, required=True)
 
     rearrange_data_task = rearrange_data(
         training_validation_config_path=training_validation_config_path,
