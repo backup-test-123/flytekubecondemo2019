@@ -27,7 +27,7 @@ DEFAULT_LUMINANCE_SAMPLE_SIZE = 20
     selected_image_mpblob=Types.MultiPartBlob,
     selected_file_names=[Types.String]
 )
-@python_task(cache=True, cache_version="1", cpu_request="16", memory_request="32Gi")
+@python_task(cache=True, cache_version="1", cpu_request="8", memory_request="32Gi")
 def luminance_select_collection_worker(
     wf_params,
     raw_frames_mpblob,
