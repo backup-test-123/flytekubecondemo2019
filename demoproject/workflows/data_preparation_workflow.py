@@ -164,8 +164,10 @@ def download_video_worker(
     wf_params, video_external_path, video_blob,
 ):
     # avi_local = wf_params.working_directory.get_named_tempfile("input.avi")
-    b = Types.Blob.fetch(remote_path=video_external_path) #, local_path=avi_local)
-    video_blob.set(b)
+    with flytekit_utils.AutoDeletingTempDir("stream") as download_dir:
+        local_path = join(download_dir.name, basename(video_external_path))
+        b = Types.Blob.fetch(remote_path=video_external_path, local_path=local_path)
+        video_blob.set(b)
 
 
 @inputs(
@@ -174,11 +176,13 @@ def download_video_worker(
     stream_extension=Types.String,
 )
 @outputs(
-    video_blobs=[Types.Blob],
+    downloaded_streams_blobs=[Types.Blob],
+    downloaded_streams_names=[Types.String],
 )
 @dynamic_task(cache_version='1', memory_request='800Mi')
 def download_videos(
-    wf_params, streams_external_storage_prefix, streams_names, stream_extension, video_blobs,
+    wf_params, streams_external_storage_prefix, streams_names, stream_extension,
+        downloaded_streams_blobs, downloaded_streams_names,
 ):
     blobs = []
 
@@ -192,7 +196,8 @@ def download_videos(
         yield download_task
         blobs.append(download_task.outputs.video_blob)
 
-    video_blobs.set(blobs)
+    downloaded_streams_blobs.set(blobs)
+    downloaded_streams_names.set(streams_names)
 
 
 @workflow_class
@@ -213,7 +218,7 @@ class DataPreparationWorkflow:
     )
 
     extract_from_video_collection_task = extract_from_video_collections(
-        video_blobs=download_video_task.outputs.video_blobs,
+        video_blobs=download_video_task.outputs.downloaded_streams_blobs,
     )
 
     luminance_select_collections_task = luminance_select_collections(
