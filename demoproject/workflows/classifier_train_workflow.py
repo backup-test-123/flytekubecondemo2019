@@ -52,6 +52,7 @@ def rearrange_data(
 ):
 
     # Get the latest execution of the data_prep_workflow
+    """
     latest_dataprep_wf_execution = fetch_workflow_latest_execution(
         service_name=SERVICE_NAME,
         workflow_name=DATAPREP_WORKFLOW_NAME,
@@ -60,6 +61,7 @@ def rearrange_data(
 
     available_streams_mpblobs = latest_dataprep_wf_execution.outputs["selected_frames_mpblobs"]
     available_streams_names = latest_dataprep_wf_execution.outputs["selected_frames_stream_names"]
+    """
 
     # Download the config file and metadata
     training_validation_config_blob = Types.Blob.fetch(remote_path=training_validation_config_path)
@@ -81,6 +83,7 @@ def rearrange_data(
     }
     training_streams, validation_streams = split_training_validation_streams(streams, validation_data_ratio)
 
+    """
     # Download multipartblobs to the target folders and then upload it
     with flytekit_utils.AutoDeletingTempDir("training") as training_dir:
         for label in streams.keys():
@@ -110,12 +113,13 @@ def rearrange_data(
             elif label == "dirty":
                 validation_dirty_mpblob.set(output_dir)
     """
+
     a = Types.MultiPartBlob()
     training_clean_mpblob.set(a)
     training_dirty_mpblob.set(a)
     validation_clean_mpblob.set(a)
     validation_dirty_mpblob.set(a)
-    """
+
 
 
 @workflow_class
