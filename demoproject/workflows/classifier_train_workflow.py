@@ -5,7 +5,7 @@ import ujson
 from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, dynamic_task, inputs, outputs
 from flytekit.sdk.workflow import workflow_class, Output, Input
-# from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution
+from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution
 # from flytekit.common import utils as flytekit_utils
 
 
