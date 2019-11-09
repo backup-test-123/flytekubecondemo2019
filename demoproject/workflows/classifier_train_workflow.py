@@ -70,7 +70,7 @@ def rearrange_data(
     print(dataprep_wf_execution)
 
     available_streams_mpblobs = dataprep_wf_execution.outputs["selected_frames_mpblobs"]
-    available_streams_names = dataprep_wf_execution.inputs["streams_names_out"]
+    available_streams_names = dataprep_wf_execution.outputs["streams_names_out"]
 
     # Download the config file and metadata
     training_validation_config_blob = Types.Blob.fetch(remote_path=training_validation_config_path)
