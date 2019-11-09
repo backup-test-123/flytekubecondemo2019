@@ -24,7 +24,7 @@ DEFAULT_SERVICE_INSTANCE = "development"
 
 DEFAULT_VALIDATION_DATA_RATIO = 0.2
 
-DEFAULT_TRAINING_VALIDATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config.json"
+DEFAULT_TRAINING_VALIDATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config_demo.json"
 
 def split_training_validation_streams(labeled_streams, validation_data_ratio):
     n_validation_streams = {
