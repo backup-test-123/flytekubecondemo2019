@@ -1,6 +1,6 @@
 import zipfile
 from os import listdir
-from os.path import join, isfile, basename
+from os.path import join, isfile, basename, exists
 
 from flytekit.common import utils as flytekit_utils
 from flytekit.sdk.types import Types
@@ -114,20 +114,26 @@ def luminance_select_collections(
 def extract_from_video_collection_worker(
     wf_params, video_blob, raw_frames_mpblob,
 ):
+    with flytekit_utils.AutoDeletingTempDir("downloaded_video") as local_video_dir:
+        with flytekit_utils.AutoDeletingTempDir("output_images") as local_output_dir:
 
-    with flytekit_utils.AutoDeletingTempDir("output_images") as local_output_dir:
+            # To keep the original basename visible. Optional
+            video_local_path = join(local_video_dir.name, basename(video_blob.remote_location))
+            video_blob.download(local_path=video_local_path)
 
-        # To keep the original basename visible. Optional
-        video_local_path = join(local_output_dir.name, basename(video_blob.remote_location))
-        video_blob.download(local_path=video_local_path)
-        print("Video blob {} downloaded to {}".format(video_blob.remote_location, video_local_path))
+            print("Video blob {} downloaded to {}".format(video_blob.remote_location, video_blob.local_path))
 
-        video_to_frames(
-            video_filename=video_blob.local_path,
-            output_dir=local_output_dir.name,
-            skip_if_dir_exists=False
-        )
-        raw_frames_mpblob.set(local_output_dir.name)
+            if exists(video_blob.local_path) and isfile(video_blob.local_path):
+                print("File {} exists".format(video_blob.local_path))
+            else:
+                print("File {} does not exist!".format(video_blob.local_path))
+
+            video_to_frames(
+                video_filename=video_blob.local_path,
+                output_dir=local_output_dir.name,
+                skip_if_dir_exists=False
+            )
+            raw_frames_mpblob.set(local_output_dir.name)
 
 
 @inputs(
