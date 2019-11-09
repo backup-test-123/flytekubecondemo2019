@@ -5,3 +5,4 @@ __pycache__/
 */.idea
 */run_test.py
 */ignore
+.DS_Store

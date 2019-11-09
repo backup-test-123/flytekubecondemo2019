@@ -24,6 +24,7 @@ DEFAULT_SERVICE_INSTANCE = "development"
 
 DEFAULT_VALIDATION_DATA_RATIO = 0.2
 
+DEFAULT_TRAINING_VALIDATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config.json"
 
 def split_training_validation_streams(labeled_streams, validation_data_ratio):
     n_validation_streams = {
@@ -189,9 +190,8 @@ def train_on_datasets(
 
 @workflow_class
 class ClassifierTrainWorkflow:
-
-    training_validation_config_path = Input(Types.String, required=True)
     streams_metadata_path = Input(Types.String, required=True)
+    training_validation_config_path = Input(Types.String, default=DEFAULT_TRAINING_VALIDATION_CONFIG_FILE)
     validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
 
     rearrange_data_task = rearrange_data(
