@@ -2,12 +2,10 @@ import os
 import ujson
 import math
 import random
-from pathlib import Path
 
 from flytekit.sdk.workflow import workflow_class, Output, Input
 from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, dynamic_task, inputs, outputs
-from flytekit.contrib.notebook import python_notebook
 from flytekit.common import utils as flytekit_utils
 
 from models.classifier.resnet50.train_tasks import train_on_datasets
@@ -17,6 +15,7 @@ SERVICE_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
 DEFAULT_SERVICE_INSTANCE = "development"
 
+"""
 interactive_validate_model_config = python_notebook(
     notebook_path="../models/classifier/resnet50/validate_model_config.ipynb",
     inputs={
@@ -28,7 +27,7 @@ interactive_validate_model_config = python_notebook(
     cache=True,
     cache_version="1",
 )
-
+"""
 DEFAULT_VALIDATION_DATA_RATIO=0.2
 
 
