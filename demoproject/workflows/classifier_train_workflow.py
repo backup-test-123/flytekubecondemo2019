@@ -28,7 +28,7 @@ interactive_validate_model_config = python_notebook(
     cache_version="1",
 )
 """
-DEFAULT_VALIDATION_DATA_RATIO=0.2
+DEFAULT_VALIDATION_DATA_RATIO = 0.2
 
 
 def split_training_validation_streams(labeled_streams, validation_data_ratio):
@@ -66,6 +66,7 @@ def rearrange_data(
         validation_clean_mpblob,
         validation_dirty_mpblob,
 ):
+    """
     # Get the latest execution of the data_prep_workflow
     latest_dataprep_wf_execution = fetch_workflow_latest_execution(
         service_name=SERVICE_NAME,
@@ -124,6 +125,13 @@ def rearrange_data(
                 validation_clean_mpblob.set(output_dir)
             elif label == "dirty":
                 validation_dirty_mpblob.set(output_dir)
+    """
+    a = Types.MultiPartBlob()
+    training_clean_mpblob.set(a)
+    training_dirty_mpblob.set(a)
+    validation_clean_mpblob.set(a)
+    validation_dirty_mpblob.set(a)
+
 
 
 #@workflow_class
