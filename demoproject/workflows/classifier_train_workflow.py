@@ -82,7 +82,9 @@ def rearrange_data(
     streams_metadata = ujson.load(metadata_fp)
 
     all_streams = streams_metadata.get("streams", {})
+    wf_params.logging.info("all streams from metadata: " + all_streams)
     selections = config.get("train_validation_datasets", {})
+    wf_params.logging.info("selections: " + selections)
     training_validation_streams = [all_streams[s] for s in selections.keys()]
 
     # Splitting the set of streams into validation and training
