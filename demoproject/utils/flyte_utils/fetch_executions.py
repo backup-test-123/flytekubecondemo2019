@@ -6,10 +6,7 @@ from flytekit.models.common import NamedEntityIdentifier as Flyte2NamedEntityIde
 from flytekit.models import filters as Flyte2Filters
 from flytekit.models.admin import common as FlyteAdminCommon
 from flytekit.clients import friendly as Flyte2FriendlyClient
-
-
-print(os.environ)
-# FLYTE_PLATFORM_URL = os.environ['FLYTE_PLATFORM_URL']
+from flytekit.configuration import platform as platform_config
 
 
 def _get_flyte2_client() -> Flyte2FriendlyClient.SynchronousFlyteClient:
@@ -17,7 +14,7 @@ def _get_flyte2_client() -> Flyte2FriendlyClient.SynchronousFlyteClient:
         return _get_flyte2_client.flyte2_client  # type: ignore
     except AttributeError:
         _get_flyte2_client.flyte2_client = Flyte2FriendlyClient.SynchronousFlyteClient(
-            FLYTE_PLATFORM_URL)  # type: ignore
+            platform_config.URL)  # type: ignore
         return _get_flyte2_client.flyte2_client  # type: ignore
 
 
