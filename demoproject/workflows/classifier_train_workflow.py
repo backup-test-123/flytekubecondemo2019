@@ -115,7 +115,7 @@ def rearrange_data(
                 mpblob.download()
                 files = os.listdir(mpblob.local_path)
                 for f in files:
-                    shutil.move(f, output_dir)
+                    shutil.move(os.path.join(mpblob.local_path, f), output_dir)
 
             if label == "clean":
                 training_clean_mpblob.set(output_dir)
@@ -132,7 +132,7 @@ def rearrange_data(
                 mpblob.download()
                 files = os.listdir(mpblob.local_path)
                 for f in files:
-                    shutil.move(f, output_dir)
+                    shutil.move(os.path.join(mpblob.local_path, f), output_dir)
 
             if label == "clean":
                 validation_clean_mpblob.set(output_dir)
