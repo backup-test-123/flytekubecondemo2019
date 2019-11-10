@@ -6,8 +6,8 @@ DEFAULT_CLASS_LABELS = sorted(
     ["clean", "dirty"]
 )  # Keras sorts class labels alphabetically
 DEFAULT_POSITIVE_LABEL = "dirty"
-DEFAULT_PATIENCE = 100
-DEFAULT_EPOCHS = 1000
+DEFAULT_PATIENCE = 3  # 100
+DEFAULT_EPOCHS = 5 # 1000
 DEFAULT_WEIGHTS = "imagenet"
 
 CHECKPOINT_FILE_NAME = "resnet50_best.h5"
