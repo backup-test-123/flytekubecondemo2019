@@ -25,8 +25,8 @@ DEFAULT_DOMAIN = "development"
 DEFAULT_VALIDATION_DATA_RATIO = 0.2
 
 DEFAULT_TRAINING_VALIDATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config_demo.json"
-# DEFAULT_DATAPREP_WF_EXECUTION_ID = "ff25dd48a39934dc5b96"  # staging
-DEFAULT_DATAPREP_WF_EXECUTION_ID = "fab5d832671ec4c31819"  # prod
+DEFAULT_DATAPREP_WF_EXECUTION_ID = "ff25dd48a39934dc5b96"  # staging
+# DEFAULT_DATAPREP_WF_EXECUTION_ID = "fab5d832671ec4c31819"  # prod
 
 def split_training_validation_streams(labeled_streams, validation_data_ratio):
     n_validation_streams = {
