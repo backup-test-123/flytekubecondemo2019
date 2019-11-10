@@ -3,6 +3,7 @@ import ujson
 import math
 import random
 import shutil
+import itertools
 
 from flytekit.sdk.workflow import workflow_class, Output, Input
 from flytekit.sdk.types import Types
@@ -39,7 +40,7 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
     validation_streams = {c: labeled_streams[c][:n_validation_streams[c]] for c in labeled_streams.keys()}
     training_streams = {c: labeled_streams[c][n_validation_streams[c]:] for c in labeled_streams.keys()}
 
-    return training_streams, validation_streams
+    return {"training": training_streams, "validation": validation_streams}
 
 
 @inputs(
@@ -97,55 +98,32 @@ def rearrange_data(
         "clean": [s["stream"] for s in training_validation_streams if s["class"] == "clean"],
         "dirty": [s["stream"] for s in training_validation_streams if s["class"] == "dirty"],
     }
-    training_streams, validation_streams = split_training_validation_streams(streams, validation_data_ratio)
+    split_streams = split_training_validation_streams(streams, validation_data_ratio)
 
     print("training_streams:")
-    print(training_streams)
+    print(split_streams['training'])
     print("validation_streams:")
-    print(validation_streams)
+    print(split_streams['validation'])
 
     # Download multipartblobs to the target folders and then upload it
-    with flytekit_utils.AutoDeletingTempDir("training") as training_dir:
-        for label in streams.keys():
-            output_dir = os.path.join(training_dir.name, label)
-            print("output dir: " + output_dir)
-            for stream in training_streams[label]:
+    final_mpblobs = {}
+    for purpose, label in itertools.product(['training', 'validation'], streams.keys()):
+        with flytekit_utils.AutoDeletingTempDir() as output_dir:
+            for stream in split_streams[purpose][label]:
                 idx = available_streams_names.index(stream)
                 mpblob = available_streams_mpblobs[idx]
                 mpblob.download()
                 files = os.listdir(mpblob.local_path)
                 for f in files:
                     shutil.move(os.path.join(mpblob.local_path, f), output_dir)
-
-            files = os.listdir(output_dir)
-            print("There are {} files in output dir {}".format(len(files), output_dir))
-
-            out_mpblob = Types.MultiPartBlob.from_python_std(output_dir)
-            if label == "clean":
-                training_clean_mpblob.set(out_mpblob)
-            elif label == "dirty":
-                training_dirty_mpblob.set(out_mpblob)
-
-    with flytekit_utils.AutoDeletingTempDir("validation") as validation_dir:
-        for label in streams.keys():
-            output_dir = os.path.join(validation_dir.name, label)
-
-            for stream in validation_streams[label]:
-                idx = available_streams_names.index(stream)
-                mpblob = available_streams_mpblobs[idx]
-                mpblob.download()
-                files = os.listdir(mpblob.local_path)
-                for f in files:
-                    shutil.move(os.path.join(mpblob.local_path, f), output_dir)
-
-            files = os.listdir(output_dir)
-            print("There are {} files in output dir {}".format(len(files), output_dir))
-
-            out_mpblob = Types.MultiPartBlob.from_python_std(output_dir)
-            if label == "clean":
-                validation_clean_mpblob.set(out_mpblob)
-            elif label == "dirty":
-                validation_dirty_mpblob.set(out_mpblob)
+                print("There are {} files in output dir {} ({}:{})".format(len(files), output_dir, purpose, label))
+                if purpose not in final_mpblobs.keys():
+                    final_mpblobs[purpose] = {}
+                final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir)
+    training_clean_mpblob.set(final_mpblobs['training']['clean'])
+    training_dirty_mpblob.set(final_mpblobs['training']['dirty'])
+    validation_clean_mpblob.set(final_mpblobs['validation']['clean'])
+    validation_dirty_mpblob.set(final_mpblobs['validation']['dirty'])
 
 
 @inputs(
