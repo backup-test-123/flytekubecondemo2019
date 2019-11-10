@@ -116,10 +116,12 @@ def rearrange_data(
                 files = os.listdir(mpblob.local_path)
                 for f in files:
                     shutil.move(os.path.join(mpblob.local_path, f), output_dir.name)
+                files = os.listdir(output_dir.name)
                 print("There are {} files in output dir {} ({}:{})".format(len(files), output_dir.name, purpose, label))
                 if purpose not in final_mpblobs.keys():
                     final_mpblobs[purpose] = {}
                 final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)
+
     training_clean_mpblob.set(final_mpblobs['training']['clean'])
     training_dirty_mpblob.set(final_mpblobs['training']['dirty'])
     validation_clean_mpblob.set(final_mpblobs['validation']['clean'])
@@ -136,7 +138,7 @@ def rearrange_data(
     model_blobs=[Types.Blob],
     model_files_names=[Types.String],
 )
-@python_task(cache=True, cache_version="2", memory_request="64Gi")
+@python_task(cache=True, cache_version="2", gpu_request="1", gpu_limit="1", memory_request="64Gi")
 def train_on_datasets(
         wf_params,
         training_clean_mpblob,
