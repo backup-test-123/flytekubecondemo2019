@@ -112,11 +112,10 @@ def rearrange_data(
             for stream in training_streams[label]:
                 idx = available_streams_names.index(stream)
                 mpblob = available_streams_mpblobs[idx]
-                with flytekit_utils.AutoDeletingTempDir(stream) as tmp_stream_dir:
-                    mpblob.download(local_path=tmp_stream_dir.name)
-                    files = os.listdir(tmp_stream_dir.name)
-                    for f in files:
-                        shutil.move(f, output_dir)
+                mpblob.download()
+                files = os.listdir(mpblob.local_path)
+                for f in files:
+                    shutil.move(f, output_dir)
 
             if label == "clean":
                 training_clean_mpblob.set(output_dir)
@@ -130,11 +129,10 @@ def rearrange_data(
             for stream in validation_streams[label]:
                 idx = available_streams_names.index(stream)
                 mpblob = available_streams_mpblobs[idx]
-                with flytekit_utils.AutoDeletingTempDir(stream) as tmp_stream_dir:
-                    mpblob.download(local_path=tmp_stream_dir.name)
-                    files = os.listdir(tmp_stream_dir.name)
-                    for f in files:
-                        shutil.move(f, output_dir)
+                mpblob.download()
+                files = os.listdir(mpblob.local_path)
+                for f in files:
+                    shutil.move(f, output_dir)
 
             if label == "clean":
                 validation_clean_mpblob.set(output_dir)
