@@ -54,7 +54,7 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
     validation_clean_mpblob=Types.MultiPartBlob,
     validation_dirty_mpblob=Types.MultiPartBlob,
 )
-@python_task
+@python_task(cache=True, cache_version="3")
 def rearrange_data(
         wf_params,
         training_validation_config_path,
@@ -120,13 +120,12 @@ def rearrange_data(
                 print("There are {} files in output dir {} ({}:{})".format(len(files), output_dir.name, purpose, label))
                 if purpose not in final_mpblobs.keys():
                     final_mpblobs[purpose] = {}
-                # final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)
-                final_mpblobs[purpose][label] = output_dir.name
+                final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)
 
-    training_clean_mpblob.set(final_mpblobs['training']['clean'])
-    training_dirty_mpblob.set(final_mpblobs['training']['dirty'])
-    validation_clean_mpblob.set(final_mpblobs['validation']['clean'])
-    validation_dirty_mpblob.set(final_mpblobs['validation']['dirty'])
+    training_clean_mpblob.set(final_mpblobs['training']['clean'].remote_location)
+    training_dirty_mpblob.set(final_mpblobs['training']['dirty'].remote_location)
+    validation_dirty_mpblob.set(final_mpblobs['validation']['dirty'].remote_location)
+    validation_clean_mpblob.set(final_mpblobs['validation']['clean'].remote_location)
 
 
 @inputs(
