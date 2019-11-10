@@ -115,11 +115,11 @@ def rearrange_data(
                 mpblob.download()
                 files = os.listdir(mpblob.local_path)
                 for f in files:
-                    shutil.move(os.path.join(mpblob.local_path, f), output_dir)
-                print("There are {} files in output dir {} ({}:{})".format(len(files), output_dir, purpose, label))
+                    shutil.move(os.path.join(mpblob.local_path, f), output_dir.name)
+                print("There are {} files in output dir {} ({}:{})".format(len(files), output_dir.name, purpose, label))
                 if purpose not in final_mpblobs.keys():
                     final_mpblobs[purpose] = {}
-                final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir)
+                final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)
     training_clean_mpblob.set(final_mpblobs['training']['clean'])
     training_dirty_mpblob.set(final_mpblobs['training']['dirty'])
     validation_clean_mpblob.set(final_mpblobs['validation']['clean'])
