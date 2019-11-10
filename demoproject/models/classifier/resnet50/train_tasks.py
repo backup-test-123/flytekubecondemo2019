@@ -23,7 +23,10 @@ from os import listdir
 
 def print_dir(directory, logger):
     for r, d, files in os.walk(directory):
-        logger.info(r, d, files)
+        for name in files:
+            logger.info(join(r, name))
+        for name in d:
+            logger.info(join(r, name))
 
 
 # Training function
