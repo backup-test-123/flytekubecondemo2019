@@ -130,6 +130,6 @@ def train_resnet50_model(
 
 
 def download_data(base_dir, mpblobs):
-    for label, mpblob in mpblobs:
-        dir = os.path.join(base_dir, label)
-        mpblob.download(local_path=dir)
+    for label, mpblob in mpblobs.items():
+        labeled_dir = os.path.join(base_dir, label)
+        mpblob.download(local_path=labeled_dir)
