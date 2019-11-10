@@ -1,5 +1,5 @@
 # FROM ubuntu:bionic
-FROM nvidia/cuda:10.1-cudnn7-devel-ubuntu18.04
+FROM nvidia/cuda:10.1-cudnn7-runtime-ubuntu18.04
 
 WORKDIR /app
 ENV VENV /app/venv
