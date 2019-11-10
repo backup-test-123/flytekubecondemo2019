@@ -117,10 +117,14 @@ def rearrange_data(
                 for f in files:
                     shutil.move(os.path.join(mpblob.local_path, f), output_dir)
 
+            files = os.listdir(output_dir)
+            print("There are {} files in output dir {}".format(len(files), output_dir))
+
+            out_mpblob = Types.MultiPartBlob.from_python_std(output_dir)
             if label == "clean":
-                training_clean_mpblob.set(output_dir)
+                training_clean_mpblob.set(out_mpblob)
             elif label == "dirty":
-                training_dirty_mpblob.set(output_dir)
+                training_dirty_mpblob.set(out_mpblob)
 
     with flytekit_utils.AutoDeletingTempDir("validation") as validation_dir:
         for label in streams.keys():
@@ -134,10 +138,14 @@ def rearrange_data(
                 for f in files:
                     shutil.move(os.path.join(mpblob.local_path, f), output_dir)
 
+            files = os.listdir(output_dir)
+            print("There are {} files in output dir {}".format(len(files), output_dir))
+
+            out_mpblob = Types.MultiPartBlob.from_python_std(output_dir)
             if label == "clean":
-                validation_clean_mpblob.set(output_dir)
+                validation_clean_mpblob.set(out_mpblob)
             elif label == "dirty":
-                validation_dirty_mpblob.set(output_dir)
+                validation_dirty_mpblob.set(out_mpblob)
 
 
 @inputs(
