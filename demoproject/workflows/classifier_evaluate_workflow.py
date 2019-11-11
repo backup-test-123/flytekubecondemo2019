@@ -17,9 +17,12 @@ from utils.flyte_utils.collect_blobs import collect_blobs
 
 DEFAULT_PROJECT_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
+CLASSIFIER_TRAIN_WORKFLOW_NAME = "workflows.classifier_train_workflow.ClassifierTrainWorkflow"
 DEFAULT_DOMAIN = "development"
 DEFAULT_DATAPREP_WF_EXECUTION_ID = "ff25dd48a39934dc5b96"  # staging
+DEFAULT_CLASSIFIER_TRAIN_WF_EXECUTION_ID = "f65c48801eba846cf95f"  # staging
 DEFAULT_EVALUATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config_demo.json"
+
 
 @inputs(model_config_path=Types.Blob)
 @outputs(model_config_string=Types.String)
@@ -195,14 +198,15 @@ def rearrange_data(
 @inputs(model_path=Types.String)
 @outputs(model_blob=Types.Blob)
 @python_task(cache=True, cache_version="1")
-def fetch_model(model_path, model_blob):
+def fetch_model(wf_params, model_path, model_blob):
     if not model_path:
         print("Fetching model from a pinned previous execution")
-
+        classifier_train_wf_exec = fetch_workflow_execution(
+            project=DEFAULT_PROJECT_NAME, domain=DEFAULT_DOMAIN, exec_id=DEFAULT_CLASSIFIER_TRAIN_WF_EXECUTION_ID)
+        model_blob.set(classifier_train_wf_exec.outputs.trained_models[1])  # resnet50_final.h5
     else:
-        with flytekit_utils.AutoDeletingTempDir("model") as model_dir:
-            b = Types.Blob.fetch(model_path)
-            model_blob.set(b)
+        b = Types.Blob.fetch(model_path)
+        model_blob.set(b)
 
 
 @workflow_class
