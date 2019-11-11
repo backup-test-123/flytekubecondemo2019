@@ -39,7 +39,10 @@ def validate_model_config(wf_params, model_config_path, model_config_string):
     evaluation_clean_mpblob=Types.MultiPartBlob,
     evaluation_dirty_mpblob=Types.MultiPartBlob,
 )
-@outputs(ground_truths_out=[[Types.Integer]], predictions_out=[[[Types.Float]]])
+@outputs(
+    ground_truths_out=[Types.Integer],
+    predictions_out=[[Types.Float]],
+)
 @python_task(cache=True, cache_version="1", gpu_request="1", gpu_limit="1", memory_request="64Gi")
 def evaluate_on_datasets(
     wf_params,
