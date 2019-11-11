@@ -120,13 +120,13 @@ def rearrange_data(
                 print("There are {} files in output dir {} ({}:{})".format(len(files), output_dir.name, purpose, label))
                 if purpose not in final_mpblobs.keys():
                     final_mpblobs[purpose] = {}
-            # final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)
-            final_mpblobs[purpose][label] = output_dir.name
+            final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)
+            #final_mpblobs[purpose][label] = output_dir.name
 
-    training_clean_mpblob.set(final_mpblobs['training']['clean'])
-    training_dirty_mpblob.set(final_mpblobs['training']['dirty'])
-    validation_dirty_mpblob.set(final_mpblobs['validation']['dirty'])
-    validation_clean_mpblob.set(final_mpblobs['validation']['clean'])
+    training_clean_mpblob.set(final_mpblobs['training']['clean'].remote_location)
+    training_dirty_mpblob.set(final_mpblobs['training']['dirty'].remote_location)
+    validation_dirty_mpblob.set(final_mpblobs['validation']['dirty'].remote_location)
+    validation_clean_mpblob.set(final_mpblobs['validation']['clean'].remote_location)
 
 
 @inputs(
