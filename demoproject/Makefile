@@ -69,6 +69,14 @@ train_staging:
 		--urn lp:flytekubecondemo2019:development:workflows.classifier_train_workflow.ClassifierTrainWorkflow:${VERSION} \
 		-r demo -- streams_metadata_path='s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/metadata/streams_metadata.json'
 
+
+.PHONY: evaluate_staging
+evaluate_staging:
+	flyte-cli -h flyte-staging.lyft.net -p flytekubecondemo2019 -d development execute-launch-plan \
+		--urn lp:flytekubecondemo2019:development:workflows.classifier_evaluate_workflow.ClassifierEvaluateWorkflow:${VERSION} \
+		-r demo -- streams_metadata_path='s3://lyft-modelbuilder/metadata/_FlyteKubeconDemo2019Dataset/metadata/streams_metadata.json'
+
+
 .PHONY: train_production
 train_prodution:
 	flyte-cli -h flyte.lyft.net -p flytekubecondemo2019 -d development execute-launch-plan \
