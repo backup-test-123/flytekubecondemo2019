@@ -206,7 +206,7 @@ def fetch_model(wf_params, model_path, model_blob):
         print("Fetching model from a pinned previous execution")
         classifier_train_wf_exec = fetch_workflow_execution(
             project=DEFAULT_PROJECT_NAME, domain=DEFAULT_DOMAIN, exec_id=DEFAULT_CLASSIFIER_TRAIN_WF_EXECUTION_ID)
-        model_blob.set(classifier_train_wf_exec.outputs.trained_models[1])  # resnet50_final.h5
+        model_blob.set(classifier_train_wf_exec.outputs["trained_models"][1])  # resnet50_final.h5
     else:
         b = Types.Blob.fetch(model_path)
         model_blob.set(b)
