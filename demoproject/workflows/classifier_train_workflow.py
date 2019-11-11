@@ -10,7 +10,7 @@ from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.common import utils as flytekit_utils
 
-from models.classifier.resnet50.train_tasks import train_resnet50_model, download_data
+from models.classifier.resnet50.train_resnet50 import train_resnet50_model, download_data
 from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution, fetch_workflow_execution
 from utils.flyte_utils.collect_blobs import collect_blobs
 
@@ -25,6 +25,7 @@ DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWor
 DEFAULT_DOMAIN = "development"
 
 DEFAULT_VALIDATION_DATA_RATIO = 0.2
+PURPOSES = ['training', 'validation']
 
 DEFAULT_TRAINING_VALIDATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config_demo.json"
 DEFAULT_DATAPREP_WF_EXECUTION_ID = "ff25dd48a39934dc5b96"  # staging
@@ -106,8 +107,18 @@ def rearrange_data(
     print(split_streams['validation'])
 
     # Download multipartblobs to the target folders and then upload it
-    final_mpblobs = {}
-    for purpose, label in itertools.product(['training', 'validation'], streams.keys()):
+    # final_mpblobs = {k: {} for k in PURPOSES}
+    final_mpblobs = {
+        'training': {
+            'dirty': training_dirty_mpblob,
+            'clean': training_clean_mpblob,
+        },
+        'validation': {
+            'dirty': validation_dirty_mpblob,
+            'clean': validation_clean_mpblob,
+        },
+    }
+    for purpose, label in itertools.product(PURPOSES, streams.keys()):
         with flytekit_utils.AutoDeletingTempDir() as output_dir:
             for stream in split_streams[purpose][label]:
                 idx = available_streams_names.index(stream)
@@ -118,15 +129,14 @@ def rearrange_data(
                     shutil.move(os.path.join(mpblob.local_path, f), output_dir.name)
                 files = os.listdir(output_dir.name)
                 print("There are {} files in output dir {} ({}:{})".format(len(files), output_dir.name, purpose, label))
-                if purpose not in final_mpblobs.keys():
-                    final_mpblobs[purpose] = {}
-            final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)
+            final_mpblobs[purpose][label].set(output_dir.name)
+            # final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)  # TODO: Matt
             #final_mpblobs[purpose][label] = output_dir.name
 
-    training_clean_mpblob.set(final_mpblobs['training']['clean'].remote_location)
-    training_dirty_mpblob.set(final_mpblobs['training']['dirty'].remote_location)
-    validation_dirty_mpblob.set(final_mpblobs['validation']['dirty'].remote_location)
-    validation_clean_mpblob.set(final_mpblobs['validation']['clean'].remote_location)
+    # training_clean_mpblob.set(final_mpblobs['training']['clean'].remote_location)
+    # training_dirty_mpblob.set(final_mpblobs['training']['dirty'].remote_location)
+    # validation_dirty_mpblob.set(final_mpblobs['validation']['dirty'].remote_location)
+    # validation_clean_mpblob.set(final_mpblobs['validation']['clean'].remote_location)
 
 
 @inputs(
