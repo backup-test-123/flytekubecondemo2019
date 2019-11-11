@@ -46,6 +46,7 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
 
 @inputs(
     training_validation_config_path=Types.String,  # The path to a json file listing the streams needed for training, and other parameters
+    training_validation_config_json=Types.Generic,
     streams_metadata_path=Types.String,  # The path to a json file listing the metadata (e.g., class) of each stream
     validation_data_ratio=Types.Float,
 )
@@ -59,6 +60,7 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
 def rearrange_data(
         wf_params,
         training_validation_config_path,
+        training_validation_config_json,
         streams_metadata_path,
         validation_data_ratio,
         training_clean_mpblob,
@@ -130,6 +132,7 @@ def rearrange_data(
                 files = os.listdir(output_dir.name)
                 print("There are {} files in output dir {} ({}:{})".format(len(files), output_dir.name, purpose, label))
             final_mpblobs[purpose][label].set(output_dir.name)
+
             # final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)  # TODO: Matt
             #final_mpblobs[purpose][label] = output_dir.name
 
@@ -210,10 +213,12 @@ def train_on_datasets(
 class ClassifierTrainWorkflow:
     streams_metadata_path = Input(Types.String, required=True)
     training_validation_config_path = Input(Types.String, default=DEFAULT_TRAINING_VALIDATION_CONFIG_FILE)
+    training_validation_config_json = Input(Types.Generic, default=ujson.loads(open(DEFAULT_TRAINING_VALIDATION_CONFIG_FILE).read()))
     validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
 
     rearrange_data_task = rearrange_data(
         training_validation_config_path=training_validation_config_path,
+        training_validation_config_json=training_validation_config_json,
         streams_metadata_path=streams_metadata_path,
         validation_data_ratio=validation_data_ratio,
     )
