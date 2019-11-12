@@ -14,7 +14,7 @@ from models.classifier.resnet50.constants import DEFAULT_BATCH_SIZE, DEFAULT_IMG
 from models.classifier.resnet50.constants import DEFAULT_CLASS_LABELS, DEFAULT_POSITIVE_LABEL
 from utils.metric_utils.metric_utils import calculate_roc_curve, calculate_precision_recall_curve, calculate_cutoff_youdens_j, export_results
 from utils.flyte_utils.collect_blobs import collect_blobs
-from workflows.classifier_train_workflow import rearrange_data
+from workflows.classifier_train_workflow import rearrange_data, DEFAULT_VALIDATION_DATA_RATIO
 
 DEFAULT_PROJECT_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
