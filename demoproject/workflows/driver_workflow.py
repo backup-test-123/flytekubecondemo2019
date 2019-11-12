@@ -32,7 +32,7 @@ class DriverWorkflow:
 
     evaluate = evaluate_lp(
         streams_metadata_path=streams_metadata_path,
-        evaluation_config_json=evaluation_config_json,
+        evaluation_config_json=training_validation_config_json,
         model=train.outputs.trained_models[1]
 	)
 
