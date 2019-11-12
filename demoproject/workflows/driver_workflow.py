@@ -19,18 +19,18 @@ class DriverWorkflow:
     training_validation_config_json = Input(Types.Generic, default=ujson.loads(open(DEFAULT_TRAINING_VALIDATION_CONFIG_FILE).read()))
     validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
 
-    prepare = DataPreparationWorkflow.launch(
+    prepare = DataPreparationWorkflow.execute(
     	streams_external_storage_prefix=streams_external_storage_prefix,
         streams_names=streams_names,
         stream_extension=stream_extension)
 
-    train = ClassifierTrainWorkflow.launch(
+    train = ClassifierTrainWorkflow.execute(
         streams_metadata_path=streams_metadata_path,
         training_validation_config_json=training_validation_config_json,
         validation_data_ratio=validation_data_ratio
     )
 
-    evaluate = ClassifierEvaluateWorkflow.launch(
+    evaluate = ClassifierEvaluateWorkflow.execute(
         streams_metadata_path=streams_metadata_path,
         evaluation_config_json=evaluation_config_json,
         model=train.outputs.trained_models[1]
