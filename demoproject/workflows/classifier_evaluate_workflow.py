@@ -213,7 +213,7 @@ def fetch_model(wf_params, model_path, model_blob):
     ground_truths=[Types.Integer],
     probabilities=[[Types.Float]])
 @outputs(predictions=[Types.Integer])
-@python_task(cache=True, cache_version="1")
+@python_task(cache=False, cache_version="1")
 def generate_predictions(wf_params, ground_truths, probabilities, predictions):
     pos_label_idx = DEFAULT_CLASS_LABELS.index(DEFAULT_POSITIVE_LABEL)
     tpr, fpr, roc_thresholds = calculate_roc_curve(
