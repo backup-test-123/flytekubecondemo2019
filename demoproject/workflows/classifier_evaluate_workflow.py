@@ -215,14 +215,15 @@ def fetch_model(wf_params, model_path, model_blob):
 @outputs(predictions=[Types.Integer])
 @python_task(cache=True, cache_version="1")
 def generate_predictions(wf_params, ground_truths, probabilities, predictions):
+    pos_label_idx = DEFAULT_CLASS_LABELS.index(DEFAULT_POSITIVE_LABEL)
     tpr, fpr, roc_thresholds = calculate_roc_curve(
         ground_truths,
         probabilities,
-        pos_label_idx=DEFAULT_CLASS_LABELS.index(DEFAULT_POSITIVE_LABEL),
+        pos_label_idx=pos_label_idx,
     )
 
     threshold = calculate_cutoff_youdens_j(tpr, fpr, roc_thresholds)
-    predictions.set([0 if p[0] > threshold else 1 for p in probabilities])
+    predictions.set([0 if p[pos_label_idx] >= threshold else 1 for p in probabilities])
 
 
 @workflow_class
