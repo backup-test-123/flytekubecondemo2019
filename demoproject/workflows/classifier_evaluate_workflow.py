@@ -241,6 +241,8 @@ class ClassifierEvaluateWorkflow:
         predictions=evaluate_on_datasets_task.outputs.predictions_out,
     )
 
+    analyze_results_blobs = Output(analyze_task.outputs.result_blobs, sdk_type=[Types.Blob])
+    analyze_results_files_names = Output(analyze_task.outputs.result_files_names, sdk_type=[Types.String])
 
     """
     visualization_task = visualization(
