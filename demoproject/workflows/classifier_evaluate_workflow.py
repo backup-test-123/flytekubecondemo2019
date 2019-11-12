@@ -188,8 +188,8 @@ class ClassifierEvaluateWorkflow:
 
     evaluate_on_datasets_task = evaluate_on_datasets(
         model=fetch_model_task.outputs.model_blob,
-        evaluation_clean_mpblob=rearrange_data_task.outputs.evaluation_clean_mpblob,
-        evaluation_dirty_mpblob=rearrange_data_task.outputs.evaluation_dirty_mpblob,
+        evaluation_clean_mpblob=rearrange_data_task.outputs.validation_clean_mpblob,
+        evaluation_dirty_mpblob=rearrange_data_task.outputs.validation_dirty_mpblob,
     )
 
     analyze_task = analyze_prediction_results(
