@@ -198,7 +198,7 @@ def fetch_model(wf_params, model, model_blob):
             project=DEFAULT_PROJECT_NAME, domain=DEFAULT_DOMAIN, exec_id=DEFAULT_CLASSIFIER_TRAIN_WF_EXECUTION_ID)
         model_blob.set(classifier_train_wf_exec.outputs["trained_models"][1])  # resnet50_final.h5
     else:
-        model_blob.set(model.remote_path)
+        model_blob.set(model.uri)
 
 
 @inputs(
@@ -224,7 +224,7 @@ def generate_predictions(wf_params, ground_truths, probabilities, predictions, t
     ground_truths=[Types.Integer],
     probabilities=[[Types.Float]])
 @outputs(predictions=[Types.Integer])
-@python_task(cache=False, cache_version="1")
+@python_task(cache=False, cache_version=CACHE_VERSION)
 def predict(wf_params, ground_truths, probabilities, predictions):
     predictions.set([0 if p[0] > p[1] else 1 for p in probabilities])
 
