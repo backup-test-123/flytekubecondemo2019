@@ -1,4 +1,5 @@
 
+import ujson
 from flytekit.sdk.workflow import workflow_class, Output, Input
 from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, inputs, outputs

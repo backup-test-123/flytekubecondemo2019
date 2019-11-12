@@ -5,7 +5,7 @@ VERSION=$(shell ./version.sh)
 
 .PHONY: serialize
 serialize:
-	pyflyte -p ${PROJECT} -d ${DOMAIN} --config /app/sandbox.config serialize workflows
+	FLYTE_PLATFORM_URL=flyte-staging.lyft.net FLYTE_INTERNAL_IMAGE=abc:133 pyflyte -p ${PROJECT} -d ${DOMAIN} --config /app/sandbox.config serialize workflows
 
 .PHONY: register_sandbox_in_container
 register_sandbox_in_container:
