@@ -216,14 +216,14 @@ def fetch_model(wf_params, model_path, model_blob):
 @python_task(cache=False, cache_version="1")
 def generate_predictions(wf_params, ground_truths, probabilities, predictions, threshold, thresholds):
     pos_label_idx = DEFAULT_CLASS_LABELS.index(DEFAULT_POSITIVE_LABEL)
-    tpr, fpr, roc_thresholds = calculate_roc_curve(
+    tpr, fpr, roc_thresholds = calculate_precision_recall_curve(
         ground_truths,
         probabilities,
         pos_label_idx=pos_label_idx,
     )
 
     threshold_val = float(calculate_cutoff_youdens_j(tpr, fpr, roc_thresholds))
-    predictions.set([1 if t > threshold_val else 0 for t in ground_truths])
+    predictions.set([1 if p[pos_label_idx] > threshold_val else 0 for p in predictions])
     threshold.set(threshold_val)
     thresholds.set([float(v) for v in roc_thresholds])
 
