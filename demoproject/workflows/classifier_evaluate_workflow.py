@@ -21,7 +21,7 @@ CLASSIFIER_TRAIN_WORKFLOW_NAME = "workflows.classifier_train_workflow.Classifier
 DEFAULT_DOMAIN = "development"
 DEFAULT_DATAPREP_WF_EXECUTION_ID = "ff25dd48a39934dc5b96"  # staging
 DEFAULT_CLASSIFIER_TRAIN_WF_EXECUTION_ID = "f65c48801eba846cf95f"  # staging
-DEFAULT_EVALUATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config_demo.json"
+DEFAULT_EVALUATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_evaluation_config_demo.json"
 
 
 @inputs(model_config_path=Types.Blob)
