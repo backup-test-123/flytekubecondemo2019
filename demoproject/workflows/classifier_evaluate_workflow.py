@@ -215,7 +215,7 @@ def fetch_model(wf_params, model_path, model_blob):
     labels=[Types.String])
 @outputs(predictions=[Types.Integer])
 @python_task(cache=True, cache_version="1")
-def generate_predictions(wf_params, ground_truth, probabilities):
+def generate_predictions(wf_params, ground_truth, probabilities, predictions):
     tpr, fpr, roc_thresholds = calculate_roc_curve(
         ground_truths,
         probabilities,
