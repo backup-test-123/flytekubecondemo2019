@@ -45,7 +45,6 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
 
 
 @inputs(
-    training_validation_config_path=Types.String,  # The path to a json file listing the streams needed for training, and other parameters
     training_validation_config_json=Types.Generic,
     streams_metadata_path=Types.String,  # The path to a json file listing the metadata (e.g., class) of each stream
     validation_data_ratio=Types.Float,
@@ -59,7 +58,6 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
 @python_task(cache=True, cache_version="4")
 def rearrange_data(
         wf_params,
-        training_validation_config_path,
         training_validation_config_json,
         streams_metadata_path,
         validation_data_ratio,
@@ -78,11 +76,6 @@ def rearrange_data(
     available_streams_mpblobs = dataprep_wf_execution.outputs["selected_frames_mpblobs"]
     available_streams_names = dataprep_wf_execution.outputs["streams_names_out"]
 
-    # Download the config file and metadata
-    training_validation_config_blob = Types.Blob.fetch(remote_path=training_validation_config_path)
-    config_fp = open(training_validation_config_blob.local_path)
-    config = ujson.load(config_fp)
-
     streams_metadata_blob = Types.Blob.fetch(remote_path=streams_metadata_path)
     metadata_fp = open(streams_metadata_blob.local_path)
     streams_metadata = ujson.load(metadata_fp)
@@ -90,7 +83,7 @@ def rearrange_data(
     all_streams = streams_metadata.get("streams", {})
     wf_params.logging.info("all streams from metadata: ")
     wf_params.logging.info(all_streams)
-    selections = config.get("train_validation_datasets", {})
+    selections = training_validation_config_json.get("train_validation_datasets", {})
     wf_params.logging.info("selections: ")
     wf_params.logging.info(selections)
     training_validation_streams = [{"stream": name, "class": metadata["class"]} for name, metadata in all_streams.items()
@@ -212,12 +205,10 @@ def train_on_datasets(
 @workflow_class
 class ClassifierTrainWorkflow:
     streams_metadata_path = Input(Types.String, required=True)
-    training_validation_config_path = Input(Types.String, default=DEFAULT_TRAINING_VALIDATION_CONFIG_FILE)
     training_validation_config_json = Input(Types.Generic, default=ujson.loads(open(DEFAULT_TRAINING_VALIDATION_CONFIG_FILE).read()))
     validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
 
     rearrange_data_task = rearrange_data(
-        training_validation_config_path=training_validation_config_path,
         training_validation_config_json=training_validation_config_json,
         streams_metadata_path=streams_metadata_path,
         validation_data_ratio=validation_data_ratio,

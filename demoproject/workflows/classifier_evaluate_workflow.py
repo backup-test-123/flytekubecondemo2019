@@ -195,18 +195,17 @@ def rearrange_data(
             final_mpblobs[label].set(output_dir.name)
 
 
-@inputs(model_path=Types.String)
+@inputs(model=Types.Blob)
 @outputs(model_blob=Types.Blob)
 @python_task(cache=True, cache_version="1")
-def fetch_model(wf_params, model_path, model_blob):
-    if not model_path:
+def fetch_model(wf_params, model, model_blob):
+    if not model:
         print("Fetching model from a pinned previous execution")
         classifier_train_wf_exec = fetch_workflow_execution(
             project=DEFAULT_PROJECT_NAME, domain=DEFAULT_DOMAIN, exec_id=DEFAULT_CLASSIFIER_TRAIN_WF_EXECUTION_ID)
         model_blob.set(classifier_train_wf_exec.outputs["trained_models"][1])  # resnet50_final.h5
     else:
-        b = Types.Blob.fetch(model_path)
-        model_blob.set(b)
+        model_blob.set(model.remote_path)
 
 
 @inputs(
@@ -240,8 +239,7 @@ def predict(wf_params, ground_truths, probabilities, predictions):
 @workflow_class
 class ClassifierEvaluateWorkflow:
     streams_metadata_path = Input(Types.String, required=True)
-    model_path = Input(Types.String, default="")
-    evaluation_config_path = Input(Types.String, default=DEFAULT_EVALUATION_CONFIG_FILE)
+    model = Input(Types.Blob, default=None)
     evaluation_config_json = Input(Types.Generic, default=ujson.loads(open(DEFAULT_EVALUATION_CONFIG_FILE).read()))
 
     # validate_model_config_task = validate_model_config(
@@ -249,11 +247,10 @@ class ClassifierEvaluateWorkflow:
     # )
 
     fetch_model_task = fetch_model(
-        model_path=model_path
+        model=model
     )
 
     rearrange_data_task = rearrange_data(
-        evaluation_config_path=evaluation_config_path,
         evaluation_config_json=evaluation_config_json,
         streams_metadata_path=streams_metadata_path,
     )
