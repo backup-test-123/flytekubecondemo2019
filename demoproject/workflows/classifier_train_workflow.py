@@ -57,7 +57,7 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
     validation_clean_mpblob=Types.MultiPartBlob,
     validation_dirty_mpblob=Types.MultiPartBlob,
 )
-@python_task(cache=True, cache_version="4")
+@python_task(cache=True, cache_version="4", cpu_request="4", memory_request="8Gi")
 def rearrange_data(
         wf_params,
         available_streams_mpblobs,
