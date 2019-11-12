@@ -268,3 +268,5 @@ class ClassifierEvaluateWorkflow:
     analyze_results_files_names = Output(analyze_task.outputs.result_files_names, sdk_type=[Types.String])
     ground_truths = Output(evaluate_on_datasets_task.outputs.ground_truths_out, sdk_type=[Types.Integer])
     predictions = Output(predict.outputs.predictions, sdk_type=[Types.Integer])
+
+evaluate_lp = ClassifierEvaluateWorkflow.create_launch_plan()

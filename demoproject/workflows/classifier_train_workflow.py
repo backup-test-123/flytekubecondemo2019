@@ -241,3 +241,6 @@ class ClassifierTrainWorkflow:
         model_output_path=model_output_path,
     )
     """
+
+train_lp = ClassifierTrainWorkflow.create_launch_plan()
+

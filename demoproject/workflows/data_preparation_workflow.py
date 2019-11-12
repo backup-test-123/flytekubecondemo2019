@@ -244,3 +244,4 @@ class DataPreparationWorkflow:
                                               sdk_type=[[Types.String]])
     streams_names_out = Output(streams_names, sdk_type=[Types.String])
 
+data_prep = DataPreparationWorkflow.create_launch_plan()
