@@ -211,19 +211,18 @@ def fetch_model(wf_params, model_path, model_blob):
 
 @inputs(
     ground_truths=[Types.Integer],
-    probabilities=[[Types.Float]],
-    labels=[Types.String])
+    probabilities=[[Types.Float]])
 @outputs(predictions=[Types.Integer])
 @python_task(cache=True, cache_version="1")
-def generate_predictions(wf_params, ground_truths, probabilities, labels, predictions):
+def generate_predictions(wf_params, ground_truths, probabilities, predictions):
     tpr, fpr, roc_thresholds = calculate_roc_curve(
         ground_truths,
         probabilities,
-        pos_label_idx=labels.index(DEFAULT_POSITIVE_LABEL),
+        pos_label_idx=DEFAULT_CLASS_LABELS.index(DEFAULT_POSITIVE_LABEL),
     )
 
     threshold = calculate_cutoff_youdens_j(tpr, fpr, roc_thresholds)
-    predictions.set([labels[0] if p[0] > threshold else labels[1] for p in probabilities])
+    predictions.set([DEFAULT_CLASS_LABELS[0] if p[0] > threshold else DEFAULT_CLASS_LABELS[1] for p in probabilities])
 
 
 @workflow_class
@@ -260,8 +259,7 @@ class ClassifierEvaluateWorkflow:
 
     predict = generate_predictions(
         ground_truths=evaluate_on_datasets_task.outputs.ground_truths_out,
-        probabilities=evaluate_on_datasets_task.outputs.predictions_out,
-        labels=DEFAULT_CLASS_LABELS
+        probabilities=evaluate_on_datasets_task.outputs.predictions_out
     )
 
     analyze_results_blobs = Output(analyze_task.outputs.result_blobs, sdk_type=[Types.Blob])
