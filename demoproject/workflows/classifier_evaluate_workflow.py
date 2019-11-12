@@ -269,7 +269,7 @@ class ClassifierEvaluateWorkflow:
         predictions=evaluate_on_datasets_task.outputs.predictions_out,
     )
 
-    predict = generate_predictions(
+    predict = predict(
         ground_truths=evaluate_on_datasets_task.outputs.ground_truths_out,
         probabilities=evaluate_on_datasets_task.outputs.predictions_out
     )
