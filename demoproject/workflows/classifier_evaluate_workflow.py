@@ -181,7 +181,7 @@ class ClassifierEvaluateWorkflow:
     rearrange_data_task = rearrange_data(
         available_streams_mpblobs=available_streams_mpblobs,
         available_streams_names=available_streams_names,
-        evaluation_config_json=evaluation_config_json,
+        training_validation_config_json=evaluation_config_json,
         streams_metadata_path=streams_metadata_path,
         validation_data_ratio=validation_data_ratio,
     )
