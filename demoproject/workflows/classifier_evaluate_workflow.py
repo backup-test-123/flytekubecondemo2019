@@ -222,7 +222,7 @@ def generate_predictions(wf_params, ground_truths, probabilities, predictions, t
         pos_label_idx=pos_label_idx,
     )
 
-    threshold_val = calculate_cutoff_youdens_j(tpr, fpr, roc_thresholds)
+    threshold_val = float(calculate_cutoff_youdens_j(tpr, fpr, roc_thresholds))
     predictions.set([1 if p[pos_label_idx] > threshold_val else 0 for p in probabilities])
     threshold.set(threshold_val)
 
