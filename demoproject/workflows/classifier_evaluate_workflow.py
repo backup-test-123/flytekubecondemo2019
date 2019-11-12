@@ -124,7 +124,6 @@ def analyze_prediction_results(
 
 
 @inputs(
-    evaluation_config_path=Types.String,  # The path to a json file listing the streams needed for training, and other parameters
     evaluation_config_json=Types.Generic,
     streams_metadata_path=Types.String,  # The path to a json file listing the metadata (e.g., class) of each stream
 )
@@ -135,7 +134,6 @@ def analyze_prediction_results(
 @python_task(cache=True, cache_version="1", memory_request="16Gi")
 def rearrange_data(
         wf_params,
-        evaluation_config_path,
         evaluation_config_json,
         streams_metadata_path,
         evaluation_clean_mpblob,
@@ -151,11 +149,6 @@ def rearrange_data(
     available_streams_mpblobs = dataprep_wf_execution.outputs["selected_frames_mpblobs"]
     available_streams_names = dataprep_wf_execution.outputs["streams_names_out"]
 
-    # Download the config file and metadata
-    training_validation_config_blob = Types.Blob.fetch(remote_path=evaluation_config_path)
-    config_fp = open(training_validation_config_blob.local_path)
-    config = ujson.load(config_fp)
-
     streams_metadata_blob = Types.Blob.fetch(remote_path=streams_metadata_path)
     metadata_fp = open(streams_metadata_blob.local_path)
     streams_metadata = ujson.load(metadata_fp)
@@ -163,7 +156,7 @@ def rearrange_data(
     all_streams = streams_metadata.get("streams", {})
     wf_params.logging.info("all streams from metadata: ")
     wf_params.logging.info(all_streams)
-    selections = config.get("evaluation_datasets", {})
+    selections = evaluation_config_json.get("evaluation_datasets", {})
     wf_params.logging.info("selections: ")
     wf_params.logging.info(selections)
     evaluation_streams = [{"stream": name, "class": metadata["class"]} for name, metadata in all_streams.items()
