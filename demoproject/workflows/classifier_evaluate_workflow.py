@@ -14,6 +14,7 @@ from models.classifier.resnet50.constants import DEFAULT_BATCH_SIZE, DEFAULT_IMG
 from models.classifier.resnet50.constants import DEFAULT_CLASS_LABELS, DEFAULT_POSITIVE_LABEL
 from utils.metric_utils.metric_utils import calculate_roc_curve, calculate_precision_recall_curve, calculate_cutoff_youdens_j, export_results
 from utils.flyte_utils.collect_blobs import collect_blobs
+from workflows.classifier_train_workflow import rearrange_data
 
 DEFAULT_PROJECT_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
@@ -123,70 +124,6 @@ def analyze_prediction_results(
     result_files_names.set(files_names_list)
 
 
-@inputs(
-    evaluation_config_json=Types.Generic,
-    streams_metadata_path=Types.String,  # The path to a json file listing the metadata (e.g., class) of each stream
-)
-@outputs(
-    evaluation_clean_mpblob=Types.MultiPartBlob,
-    evaluation_dirty_mpblob=Types.MultiPartBlob,
-)
-@python_task(cache=True, cache_version="1", memory_request="16Gi")
-def rearrange_data(
-        wf_params,
-        evaluation_config_json,
-        streams_metadata_path,
-        evaluation_clean_mpblob,
-        evaluation_dirty_mpblob,
-):
-    # Get the latest execution of the data_prep_workflow
-    dataprep_wf_execution = fetch_workflow_execution(
-        project=DEFAULT_PROJECT_NAME, domain=DEFAULT_DOMAIN, exec_id=DEFAULT_DATAPREP_WF_EXECUTION_ID)
-
-    print("Data Prep Workflow:")
-    print(dataprep_wf_execution)
-
-    available_streams_mpblobs = dataprep_wf_execution.outputs["selected_frames_mpblobs"]
-    available_streams_names = dataprep_wf_execution.outputs["streams_names_out"]
-
-    streams_metadata_blob = Types.Blob.fetch(remote_path=streams_metadata_path)
-    metadata_fp = open(streams_metadata_blob.local_path)
-    streams_metadata = ujson.load(metadata_fp)
-
-    all_streams = streams_metadata.get("streams", {})
-    wf_params.logging.info("all streams from metadata: ")
-    wf_params.logging.info(all_streams)
-    selections = evaluation_config_json.get("evaluation_datasets", {})
-    wf_params.logging.info("selections: ")
-    wf_params.logging.info(selections)
-    evaluation_streams = [{"stream": name, "class": metadata["class"]} for name, metadata in all_streams.items()
-                          if name in selections.keys()]
-
-    # Splitting the set of streams into validation and training
-    labeled_streams = {
-        "clean": [s["stream"] for s in evaluation_streams if s["class"] == "clean"],
-        "dirty": [s["stream"] for s in evaluation_streams if s["class"] == "dirty"],
-    }
-
-    # Download multipartblobs to the target folders and then upload it
-    final_mpblobs = {
-        'dirty': evaluation_dirty_mpblob,
-        'clean': evaluation_clean_mpblob,
-    }
-    for label in labeled_streams.keys():
-        with flytekit_utils.AutoDeletingTempDir() as output_dir:
-            for stream in labeled_streams[label]:
-                idx = available_streams_names.index(stream)
-                mpblob = available_streams_mpblobs[idx]
-                mpblob.download()
-                files = os.listdir(mpblob.local_path)
-                for f in files:
-                    shutil.move(os.path.join(mpblob.local_path, f), output_dir.name)
-                files = os.listdir(output_dir.name)
-                print("There are {} files in output dir {} ({})".format(len(files), output_dir.name, label))
-            final_mpblobs[label].set(output_dir.name)
-
-
 @inputs(model=Types.Blob)
 @outputs(model_blob=Types.Blob)
 @python_task(cache=True, cache_version="1")
@@ -230,6 +167,9 @@ def predict(wf_params, ground_truths, probabilities, predictions):
 
 @workflow_class
 class ClassifierEvaluateWorkflow:
+    available_streams_mpblobs = Input([Types.MultiPartBlob], required=True)
+    available_streams_names = Input([Types.String], required=True)
+    validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
     streams_metadata_path = Input(Types.String, required=True)
     model = Input(Types.Blob, default=None)
     evaluation_config_json = Input(Types.Generic, default=ujson.loads(open(DEFAULT_EVALUATION_CONFIG_FILE).read()))
@@ -239,8 +179,11 @@ class ClassifierEvaluateWorkflow:
     )
 
     rearrange_data_task = rearrange_data(
+        available_streams_mpblobs=available_streams_mpblobs,
+        available_streams_names=available_streams_names,
         evaluation_config_json=evaluation_config_json,
         streams_metadata_path=streams_metadata_path,
+        validation_data_ratio=validation_data_ratio,
     )
 
     evaluate_on_datasets_task = evaluate_on_datasets(
