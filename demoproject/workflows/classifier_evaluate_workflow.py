@@ -212,9 +212,9 @@ def fetch_model(wf_params, model_path, model_blob):
 @inputs(
     ground_truths=[Types.Integer],
     probabilities=[[Types.Float]])
-@outputs(predictions=[Types.Integer], threshold=Types.Float)
+@outputs(predictions=[Types.Integer], threshold=Types.Float, thresholds=[Types.Float])
 @python_task(cache=False, cache_version="1")
-def generate_predictions(wf_params, ground_truths, probabilities, predictions, threshold):
+def generate_predictions(wf_params, ground_truths, probabilities, predictions, threshold, thresholds):
     pos_label_idx = DEFAULT_CLASS_LABELS.index(DEFAULT_POSITIVE_LABEL)
     tpr, fpr, roc_thresholds = calculate_roc_curve(
         ground_truths,
@@ -225,6 +225,7 @@ def generate_predictions(wf_params, ground_truths, probabilities, predictions, t
     threshold_val = float(calculate_cutoff_youdens_j(tpr, fpr, roc_thresholds))
     predictions.set([1 if t > threshold_val else 0 for t in ground_truths])
     threshold.set(threshold_val)
+    thresholds.set([float(v) for v in roc_thresholds])
 
 
 @workflow_class
