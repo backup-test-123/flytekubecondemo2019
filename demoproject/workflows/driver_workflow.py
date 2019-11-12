@@ -42,9 +42,12 @@ class DriverWorkflow:
     pick_second = pick_second(models=train.outputs.trained_models)
 
     evaluate = evaluate_lp(
+        available_streams_names=prepare.outputs.streams_names_out,
+        available_streams_mpblobs=prepare.outputs.selected_frames_mpblobs,
         streams_metadata_path=streams_metadata_path,
         evaluation_config_json=training_validation_config_json,
-        model=pick_second.outputs.second
+        model=pick_second.outputs.second,
+        validation_data_ratio=validation_data_ratio
     )
 
     ground_truths = Output(evaluate.outputs.ground_truths, sdk_type=[Types.Integer])
