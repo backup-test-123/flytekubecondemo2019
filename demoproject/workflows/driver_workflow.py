@@ -17,19 +17,19 @@ class DriverWorkflow:
     validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
 
     prepare = DataPreparationWorkflow(streams_external_storage_prefix=streams_external_storage_prefix,
-    	streams_names=streams_names,
-    	stream_extension=stream_extension)
+        streams_names=streams_names,
+        stream_extension=stream_extension)
 
-	train = ClassifierTrainWorkflow.execute(
-		streams_metadata_path=streams_metadata_path,
-		training_validation_config_json=training_validation_config_json,
-		validation_data_ratio=validation_data_ratio
-	)
+    train = ClassifierTrainWorkflow.execute(
+        streams_metadata_path=streams_metadata_path,
+        training_validation_config_json=training_validation_config_json,
+        validation_data_ratio=validation_data_ratio
+    )
 
-	evaluate = ClassifierEvaluateWorkflow.execute(
-		streams_metadata_path=streams_metadata_path,
-		evaluation_config_json=evaluation_config_json,
-		model=train.outputs.trained_models[1]
+    evaluate = ClassifierEvaluateWorkflow.execute(
+        streams_metadata_path=streams_metadata_path,
+        evaluation_config_json=evaluation_config_json,
+        model=train.outputs.trained_models[1]
 	)
 
     ground_truths = Output(evaluate.outputs.ground_truths, sdk_type=[Types.Integer])
