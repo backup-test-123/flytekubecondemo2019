@@ -4,7 +4,9 @@ from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.common import utils as flytekit_utils
 
-from classifier_train_workflow import DEFAULT_VALIDATION_DATA_RATIO
+from app.workkflows.classifier_train_workflow import ClassifierTrainWorkflow, DEFAULT_VALIDATION_DATA_RATIO
+from app.workkflows.classifier_evaluate_workflow import ClassifierEvaluateWorkflow
+from app.workkflows.data_preparation_workflow import DataPreparationWorkflow
 
 @workflow_class
 class DriverWorkflow:
