@@ -228,6 +228,15 @@ def generate_predictions(wf_params, ground_truths, probabilities, predictions, t
     thresholds.set([float(v) for v in roc_thresholds])
 
 
+@inputs(
+    ground_truths=[Types.Integer],
+    probabilities=[[Types.Float]])
+@outputs(predictions=[Types.Integer])
+@python_task(cache=False, cache_version="1")
+def predict(wf_params, ground_truths, probabilities, predictions):
+    predictions.set([0 if p[0] > p[1] else 1 for p in probabilities])
+
+
 @workflow_class
 class ClassifierEvaluateWorkflow:
     streams_metadata_path = Input(Types.String, required=True)
