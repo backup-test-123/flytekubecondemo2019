@@ -33,4 +33,4 @@ def predict_with_resnet50_model(model_path, evaluation_dataset, batch_size, img_
     num_test_steps = len(evaluation_batches)
     predictions = model.predict_generator(evaluation_batches, steps=num_test_steps)
 
-    return ground_truths, predictions
+    return ground_truths.tolist(), predictions.tolist()
