@@ -86,9 +86,6 @@ def analyze_prediction_results(
     result_files_names,
 ):
 
-    flattened_ground_truths = [gt for chunk in ground_truths for gt in chunk]
-    flattened_predictions = [pred for chunk in predictions for pred in chunk]
-
     temp_result_dir = wf_params.working_directory.get_named_tempfile("results")
     Path(temp_result_dir).mkdir(0o777, parents=True, exist_ok=False)
 
