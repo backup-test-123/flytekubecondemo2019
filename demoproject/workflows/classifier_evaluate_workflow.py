@@ -209,6 +209,23 @@ def fetch_model(wf_params, model_path, model_blob):
         model_blob.set(b)
 
 
+@inputs(
+    ground_truths=[Types.Integer],
+    probabilities=[[Types.Float]],
+    labels=[Types.String])
+@outputs(predictions=[Types.Integer])
+@python_task(cache=True, cache_version="1")
+def generate_predictions(wf_params, ground_truth, probabilities):
+    tpr, fpr, roc_thresholds = calculate_roc_curve(
+        ground_truths,
+        probabilities,
+        pos_label_idx=labels.index(DEFAULT_POSITIVE_LABEL),
+    )
+
+    threshold = calculate_cutoff_youdens_j(tpr, fpr, roc_thresholds)
+    predictions.set([labels[0] if p[0] > threshold else labels[1] for p in probabilities])
+
+
 @workflow_class
 class ClassifierEvaluateWorkflow:
     streams_metadata_path = Input(Types.String, required=True)
@@ -241,28 +258,13 @@ class ClassifierEvaluateWorkflow:
         predictions=evaluate_on_datasets_task.outputs.predictions_out,
     )
 
+    predict = generate_predictions(
+        ground_truths=evaluate_on_datasets_task.outputs.ground_truths_out,
+        probabilities=evaluate_on_datasets_task.outputs.predictions_out,
+        labels=DEFAULT_CLASS_LABELS
+    )
+
     analyze_results_blobs = Output(analyze_task.outputs.result_blobs, sdk_type=[Types.Blob])
     analyze_results_files_names = Output(analyze_task.outputs.result_files_names, sdk_type=[Types.String])
-
-    """
-    visualization_task = visualization(
-        
-    )
-    """
-    """
-    download_and_prepare_task = download_and_prepare_datasets(
-        model_config_string=validate_model_config_task.outputs.model_config_string
-    )
-    
-    prediction_task = predict_on_datasets(
-        model_path=model_path,
-        evaluation_streams_strings=download_and_prepare_task.outputs.evaluation_streams_strings_out,
-        evaluation_zips=download_and_prepare_task.outputs.evaluation_zips_out,
-    )
-
-    analyze_task = analyze_prediction_results(
-        ground_truths=prediction_task.outputs.ground_truths_out,
-        predictions=prediction_task.outputs.predictions_out,
-        result_output_path=result_output_path,
-    )
-    """
+    ground_truths = Output(evaluate_on_datasets_task.outputs.ground_truths_out, sdk_type[Types.Integer])
+    predictions = Output(predict.outputs.predictions, sdk_type=[Types.Integer])
