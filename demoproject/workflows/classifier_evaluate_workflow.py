@@ -222,7 +222,7 @@ def generate_predictions(wf_params, ground_truths, probabilities, predictions):
     )
 
     threshold = calculate_cutoff_youdens_j(tpr, fpr, roc_thresholds)
-    predictions.set([DEFAULT_CLASS_LABELS[0] if p[0] > threshold else DEFAULT_CLASS_LABELS[1] for p in probabilities])
+    predictions.set([0 if p[0] > threshold else 1 for p in probabilities])
 
 
 @workflow_class
