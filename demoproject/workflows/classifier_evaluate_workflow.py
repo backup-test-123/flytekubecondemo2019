@@ -77,7 +77,7 @@ def evaluate_on_datasets(
     result_blobs=[Types.Blob],
     result_files_names=[Types.String]
 )
-@python_task(cache_version="1")
+@python_task(cache=True, cache_version="1")
 def analyze_prediction_results(
     wf_params,
     ground_truths,
