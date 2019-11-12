@@ -31,6 +31,8 @@ class DriverWorkflow:
         stream_extension=stream_extension)
 
     train = train_lp(
+    	available_streams_names=prepare.outputs.streams_names_out,
+    	available_streams_mpblobs=prepare.outputs.selected_frames_mpblobs,
         streams_metadata_path=streams_metadata_path,
         training_validation_config_json=training_validation_config_json,
         validation_data_ratio=validation_data_ratio
