@@ -9,6 +9,12 @@ from workflows.classifier_train_workflow import train_lp, DEFAULT_VALIDATION_DAT
 from workflows.classifier_evaluate_workflow import evaluate_lp
 from workflows.data_preparation_workflow import data_prep
 
+@inputs(models=[Types.Blob])
+@outputs(second=Types.Blob)
+@python_task
+def pick_second(wf_params, models, second):
+	second.set(models[1])
+
 @workflow_class
 class DriverWorkflow:
     streams_external_storage_prefix = Input(Types.String, required=True)
@@ -30,10 +36,12 @@ class DriverWorkflow:
         validation_data_ratio=validation_data_ratio
     )
 
+    pick_second = pick_second(models=train.outputs.trained_models)
+
     evaluate = evaluate_lp(
         streams_metadata_path=streams_metadata_path,
         evaluation_config_json=training_validation_config_json,
-        model=train.outputs.trained_models[1]
+        model=pick_second.outputs.second
 	)
 
     ground_truths = Output(evaluate.outputs.ground_truths, sdk_type=[Types.Integer])
