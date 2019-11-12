@@ -120,14 +120,6 @@ def rearrange_data(
                 print("There are {} files in output dir {} ({}:{})".format(len(files), output_dir.name, purpose, label))
             final_mpblobs[purpose][label].set(output_dir.name)
 
-            # final_mpblobs[purpose][label] = Types.MultiPartBlob.from_python_std(output_dir.name)  # TODO: Matt
-            #final_mpblobs[purpose][label] = output_dir.name
-
-    # training_clean_mpblob.set(final_mpblobs['training']['clean'].remote_location)
-    # training_dirty_mpblob.set(final_mpblobs['training']['dirty'].remote_location)
-    # validation_dirty_mpblob.set(final_mpblobs['validation']['dirty'].remote_location)
-    # validation_clean_mpblob.set(final_mpblobs['validation']['clean'].remote_location)
-
 
 @inputs(
     training_clean_mpblob=Types.MultiPartBlob,
@@ -172,29 +164,6 @@ def train_on_datasets(
                 model_blobs.set(blobs)
                 model_files_names.set(files_names_list)
 
-    """
-    # write results to storage path also
-    for file in files_names_list:
-        location = model_output_path + file
-        out_blob = Types.Blob.create_at_known_location(location)
-
-        with out_blob as out_writer:
-            with open(output_folder + "/" + file, mode="rb") as in_reader:
-                out_writer.write(in_reader.read())
-
-    # keep the model_config with the trained model
-    location = model_output_path + MODEL_CONFIG_FILE_NAME
-    out_blob = Types.Blob.create_at_known_location(location)
-    with out_blob as out_writer:
-        out_writer.write((model_config_string).encode("utf-8"))
-
-    # write metadata to track what execution this was done by
-    location = model_output_path + MODEL_GENERATED_BY_FILE_NAME
-    out_blob = Types.Blob.create_at_known_location(location)
-    with out_blob as out_writer:
-        out_writer.write((f"workflow_id: {wf_params.execution_id}").encode("utf-8"))
-    """
-
 
 @workflow_class
 class ClassifierTrainWorkflow:
@@ -221,24 +190,6 @@ class ClassifierTrainWorkflow:
 
     trained_models = Output(train_on_datasets_task.outputs.model_blobs, sdk_type=[Types.Blob])
     model_file_names = Output(train_on_datasets_task.outputs.model_files_names, sdk_type=[Types.String])
-
-    # ------------------------------------------------------------
-    """
-    interactive_validate_model_config_task = interactive_validate_model_config(
-        model_config_path=model_config_path
-    )
-
-    download_and_prepare_datasets_task = download_and_prepare_datasets(
-        model_config_string=interactive_validate_model_config_task.outputs.model_config_string
-    )
-
-    train_on_datasets_task = train_on_datasets(
-        train_data_mpblobs=download_and_prepare_datasets_task.outputs.train_data_mpblobs,
-        validation_data_mpblobs=download_and_prepare_datasets_task.outputs.validate_zips_out,
-        model_config_string=interactive_validate_model_config_task.outputs.model_config_string,
-        model_output_path=model_output_path,
-    )
-    """
 
 train_lp = ClassifierTrainWorkflow.create_launch_plan()
 

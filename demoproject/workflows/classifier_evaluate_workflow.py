@@ -169,7 +169,6 @@ def rearrange_data(
     }
 
     # Download multipartblobs to the target folders and then upload it
-    # final_mpblobs = {k: {} for k in PURPOSES}
     final_mpblobs = {
         'dirty': evaluation_dirty_mpblob,
         'clean': evaluation_clean_mpblob,
@@ -234,10 +233,6 @@ class ClassifierEvaluateWorkflow:
     streams_metadata_path = Input(Types.String, required=True)
     model = Input(Types.Blob, default=None)
     evaluation_config_json = Input(Types.Generic, default=ujson.loads(open(DEFAULT_EVALUATION_CONFIG_FILE).read()))
-
-    # validate_model_config_task = validate_model_config(
-    #     model_config_path=model_config_path
-    # )
 
     fetch_model_task = fetch_model(
         model=model
