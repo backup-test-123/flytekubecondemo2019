@@ -14,7 +14,7 @@ from flytekit.sdk.tasks import (
     outputs,
 )
 from flytekit.sdk.types import Types
-from flytekit.common.utils import AutoDeletingTempDir
+from flytekit.common import utils
 
 import numpy as np
 
@@ -73,27 +73,9 @@ def _plot_confusion_matrix(y_true, y_pred, classes, to_file_path=None, normalize
     return cm
 
 
-def _sample_train():
-    # import some data to play with
-    iris = datasets.load_iris()
-    X = iris.data
-    y = iris.target
-    class_names = iris.target_names
-
-    # Split the data into a training set and a test set
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
-
-    # Run classifier, using a model that is too regularized (C too low) to see
-    # the impact on the results
-    classifier = svm.SVC(kernel='linear', C=0.01)
-    y_pred = classifier.fit(X_train, y_train).predict(X_test)
-
-    return y_test, y_pred, class_names
-
-
 @inputs(y_true=[Types.Integer], y_pred=[Types.Integer], title=Types.String, normalize=Types.Boolean, classes=[Types.String])
 @outputs(matrix=[[Types.Integer]], visual=Types.Blob)
-@python_task(cache=True, cache_version="1")
+@python_task
 def confusion_matrix(wf_params, y_true, y_pred, title, normalize, classes, matrix, visual):
     with utils.AutoDeletingTempDir('test') as tmpdir:
         f_path = tmpdir.get_named_tempfile("visual")
@@ -105,11 +87,3 @@ def confusion_matrix(wf_params, y_true, y_pred, title, normalize, classes, matri
             for j in range(cm.shape[1]):
               m[i].append(j)
         matrix.set(m)
-
-
-if __name__ == "__main__":
-    y_test, y_pred, class_names = _sample_train()
-    print(y_test)
-    # Plot non-normalized confusion matrix
-    cm = confusion_matrix.unit_test(y_true=y_test.tolist(), y_pred=y_pred.tolist(), title='Confusion matrix, without normalization', normalize=False, classes=class_names.tolist())
-    print(cm)

@@ -60,15 +60,15 @@ class DriverWorkflow:
         validation_data_ratio=validation_data_ratio
     )
 
-    # cm = confusion_matrix_task(
-    #     y_true=evaluate.outputs.ground_truths,
-    #     y_pred=evaluate.outputs.predictions,
-    #     title="Confusion Matrix",
-    #     normalize=True,
-    #     classes=["dirty", "clean"],
-    # )
+    cm = confusion_matrix_task(
+        y_true=evaluate.outputs.ground_truths,
+        y_pred=evaluate.outputs.predictions,
+        title="Confusion Matrix",
+        normalize=True,
+        classes=["dirty", "clean"],
+    )
 
     ground_truths = Output(evaluate.outputs.ground_truths, sdk_type=[Types.Integer])
     predictions = Output(evaluate.outputs.predictions, sdk_type=[Types.Integer])
-    # confusion_matrix = Output(cm.outputs.matrix, sdk_type=[[Types.Integer]])
-    # confusion_matrix_image = Output(cm.outputs.visual, sdk_type=Types.Blob)
+    confusion_matrix = Output(cm.outputs.matrix, sdk_type=[[Types.Integer]])
+    confusion_matrix_image = Output(cm.outputs.visual, sdk_type=Types.Blob)
