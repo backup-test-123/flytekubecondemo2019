@@ -20,7 +20,7 @@ confusion_matrix_task = SdkTask.fetch(
 
 @inputs(models=[Types.Blob])
 @outputs(second=Types.Blob)
-@python_task
+@python_task(cache=True, cache_version="1")
 def pick_second(wf_params, models, second):
     second.set(models[1])
 
