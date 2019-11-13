@@ -44,7 +44,7 @@ def validate_model_config(wf_params, model_config_path, model_config_string):
     ground_truths_out=[Types.Integer],
     predictions_out=[[Types.Float]],
 )
-@python_task(cache=True, cache_version="1", gpu_request="1", gpu_limit="1", memory_request="64Gi")
+@python_task(cache=True, cache_version="2", gpu_request="1", gpu_limit="1", memory_request="64Gi")
 def evaluate_on_datasets(
     wf_params,
     model,
@@ -78,7 +78,7 @@ def evaluate_on_datasets(
     result_blobs=[Types.Blob],
     result_files_names=[Types.String]
 )
-@python_task(cache=True, cache_version="1")
+@python_task(cache=True, cache_version="2")
 def analyze_prediction_results(
     wf_params,
     ground_truths,
@@ -126,7 +126,7 @@ def analyze_prediction_results(
 
 @inputs(model=Types.Blob)
 @outputs(model_blob=Types.Blob)
-@python_task(cache=True, cache_version="1")
+@python_task(cache=True, cache_version="2")
 def fetch_model(wf_params, model, model_blob):
     if not model:
         print("Fetching model from a pinned previous execution")
@@ -141,7 +141,7 @@ def fetch_model(wf_params, model, model_blob):
     ground_truths=[Types.Integer],
     probabilities=[[Types.Float]])
 @outputs(predictions=[Types.Integer], threshold=Types.Float, thresholds=[Types.Float])
-@python_task(cache=False, cache_version="1")
+@python_task(cache=False, cache_version="2")
 def generate_predictions(wf_params, ground_truths, probabilities, predictions, threshold, thresholds):
     pos_label_idx = DEFAULT_CLASS_LABELS.index(DEFAULT_POSITIVE_LABEL)
     tpr, fpr, roc_thresholds = calculate_precision_recall_curve(
@@ -160,7 +160,7 @@ def generate_predictions(wf_params, ground_truths, probabilities, predictions, t
     ground_truths=[Types.Integer],
     probabilities=[[Types.Float]])
 @outputs(predictions=[Types.Integer])
-@python_task(cache=False, cache_version="1.0")
+@python_task(cache=False, cache_version="2.0")
 def predict(wf_params, ground_truths, probabilities, predictions):
     predictions.set([0 if p[0] > p[1] else 1 for p in probabilities])
 

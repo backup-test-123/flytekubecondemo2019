@@ -27,7 +27,7 @@ DEFAULT_LUMINANCE_SAMPLE_SIZE = 20
     selected_image_mpblob=Types.MultiPartBlob,
     selected_file_names=[Types.String]
 )
-@python_task(cache=True, cache_version="1", cpu_request="8", memory_request="32Gi")
+@python_task(cache=True, cache_version="2", cpu_request="8", memory_request="32Gi")
 def luminance_select_collection_worker(
     wf_params,
     raw_frames_mpblob,
@@ -70,7 +70,7 @@ def luminance_select_collection_worker(
     selected_image_mpblobs=[Types.MultiPartBlob],
     selected_file_names=[[Types.String]],
 )
-@dynamic_task(cache=True, cache_version="1")
+@dynamic_task(cache=True, cache_version="2")
 def luminance_select_collections(
     wf_params,
     raw_frames_mpblobs,
@@ -110,7 +110,7 @@ def luminance_select_collections(
 @outputs(
     raw_frames_mpblob=Types.MultiPartBlob,
 )
-@python_task(cache=True, cache_version="1", memory_request='8000Mi')
+@python_task(cache=True, cache_version="2", memory_request='8000Mi')
 def extract_from_video_collection_worker(
     wf_params, video_blob, raw_frames_mpblob,
 ):
@@ -143,7 +143,7 @@ def extract_from_video_collection_worker(
 @outputs(
     raw_frames_mpblobs=[Types.MultiPartBlob],
 )
-@dynamic_task(cache=True, cache_version="1")
+@dynamic_task(cache=True, cache_version="2")
 def extract_from_video_collections(
     wf_params, video_blobs, raw_frames_mpblobs,
 ):
@@ -169,7 +169,7 @@ def extract_from_video_collections(
 @outputs(
     video_blob=Types.Blob,
 )
-@python_task(cache=True, cache_version='1')
+@python_task(cache=True, cache_version='2')
 def download_video_worker(
     wf_params, video_external_path, video_blob,
 ):
@@ -189,7 +189,7 @@ def download_video_worker(
     downloaded_streams_blobs=[Types.Blob],
     downloaded_streams_names=[Types.String],
 )
-@dynamic_task(cache=True, cache_version='1', memory_request='800Mi')
+@dynamic_task(cache=True, cache_version='2', memory_request='800Mi')
 def download_videos(
     wf_params, streams_external_storage_prefix, streams_names, stream_extension,
         downloaded_streams_blobs, downloaded_streams_names,

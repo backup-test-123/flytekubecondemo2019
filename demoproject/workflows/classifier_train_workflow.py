@@ -57,7 +57,7 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
     validation_clean_mpblob=Types.MultiPartBlob,
     validation_dirty_mpblob=Types.MultiPartBlob,
 )
-@python_task(cache=True, cache_version="4", cpu_request="4", memory_request="8Gi")
+@python_task(cache=True, cache_version="5", cpu_request="4", memory_request="8Gi")
 def rearrange_data(
         wf_params,
         available_streams_mpblobs,
@@ -131,7 +131,7 @@ def rearrange_data(
     model_blobs=[Types.Blob],
     model_files_names=[Types.String],
 )
-@python_task(cache=True, cache_version="2", gpu_request="1", gpu_limit="1", memory_request="64Gi")
+@python_task(cache=True, cache_version="3", gpu_request="1", gpu_limit="1", memory_request="64Gi")
 def train_on_datasets(
         wf_params,
         training_clean_mpblob,
