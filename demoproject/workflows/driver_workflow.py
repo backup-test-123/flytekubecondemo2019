@@ -10,6 +10,14 @@ from workflows.data_preparation_workflow import data_prep
 from flytekit.common.tasks.task import SdkTask
 
 
+confusion_matrix_task = SdkTask.fetch(
+        project="kubecondemo2019-metrics",
+        domain="development",
+        name="demo_metrics.tasks.confusion_matrix.confusion_matrix",
+        version="6b4d6996f1ab12a67597932bb8761c40fa43c1bc",
+    )
+
+
 @inputs(models=[Types.Blob])
 @outputs(second=Types.Blob)
 @python_task
@@ -52,12 +60,7 @@ class DriverWorkflow:
         validation_data_ratio=validation_data_ratio
     )
 
-    cm = SdkTask.fetch(
-        project="kubecondemo2019-metrics",
-        domain="development",
-        name="demo_metrics.tasks.confusion_matrix.confusion_matrix",
-        version="6b4d6996f1ab12a67597932bb8761c40fa43c1bc",
-    )(
+    cm = confusion_matrix_task(
         y_true=evaluate.outputs.ground_truths,
         y_pred=evaluate.outputs.predictions,
         title="Confusion Matrix",
