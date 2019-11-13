@@ -7,7 +7,7 @@ from workflows.classifier_train_workflow import train_lp, DEFAULT_VALIDATION_DAT
     DEFAULT_TRAINING_VALIDATION_CONFIG_FILE
 from workflows.data_preparation_workflow import data_prep
 
-from flytekit.common.tasks import SdkTask
+from flytekit.common.tasks.task import SdkTask
 
 
 @inputs(models=[Types.Blob])
