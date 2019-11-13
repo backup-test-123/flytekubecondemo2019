@@ -75,7 +75,7 @@ def _plot_confusion_matrix(y_true, y_pred, classes, to_file_path=None, normalize
 
 @inputs(y_true=[Types.Integer], y_pred=[Types.Integer], title=Types.String, normalize=Types.Boolean, classes=[Types.String])
 @outputs(matrix=[[Types.Integer]], visual=Types.Blob)
-@python_task
+@python_task(cache=True, cache_version="1")
 def confusion_matrix(wf_params, y_true, y_pred, title, normalize, classes, matrix, visual):
     with utils.AutoDeletingTempDir('test') as tmpdir:
         f_path = tmpdir.get_named_tempfile("visual")
@@ -86,4 +86,8 @@ def confusion_matrix(wf_params, y_true, y_pred, title, normalize, classes, matri
             m.append([])
             for j in range(cm.shape[1]):
               m[i].append(j)
-        matrix.set(m)
+        my_blob = Types.Blob()
+        with my_blob as fileobj:
+            with open(f_path, mode="rb") as file:  # b is important -> binary
+                fileobj.write(file.read())
+        matrix.set(my_blob)
