@@ -1,22 +1,16 @@
 from __future__ import absolute_import
-import os
-import numpy as np
+
 import matplotlib.pyplot as plt
-
-from sklearn import svm, datasets
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix as _cm
-from sklearn.utils.multiclass import unique_labels
-
+import numpy as np
+from flytekit.common import utils
 from flytekit.sdk.tasks import (
     python_task,
     inputs,
     outputs,
 )
 from flytekit.sdk.types import Types
-from flytekit.common import utils
-
-import numpy as np
+from sklearn.metrics import confusion_matrix as _cm
+from sklearn.utils.multiclass import unique_labels
 
 
 def _plot_confusion_matrix(y_true, y_pred, classes, to_file_path=None, normalize=False, title=None, cmap=plt.cm.Blues):
@@ -78,16 +72,12 @@ def _plot_confusion_matrix(y_true, y_pred, classes, to_file_path=None, normalize
 @python_task(cache=True, cache_version="1")
 def confusion_matrix(wf_params, y_true, y_pred, title, normalize, classes, matrix, visual):
     with utils.AutoDeletingTempDir('test') as tmpdir:
-        f_path = tmpdir.get_named_tempfile("visual")
+        f_path = tmpdir.get_named_tempfile("visual.png")
         cm = _plot_confusion_matrix(np.asarray(y_true), np.asarray(y_pred), classes=np.asarray(classes), title=title, normalize=normalize, to_file_path=f_path)
-        visual.set(f_path)
         m = []
         for i in range(cm.shape[0]):
             m.append([])
             for j in range(cm.shape[1]):
               m[i].append(j)
-        my_blob = Types.Blob()
-        with my_blob as fileobj:
-            with open(f_path, mode="rb") as file:  # b is important -> binary
-                fileobj.write(file.read())
-        matrix.set(my_blob)
+        visual.set(f_path)
+        matrix.set(m)

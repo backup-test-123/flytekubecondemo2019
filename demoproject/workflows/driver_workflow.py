@@ -1,4 +1,5 @@
 import ujson
+from flytekit.common.tasks.task import SdkTask
 from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import workflow_class, Output, Input
@@ -7,10 +8,7 @@ from workflows.classifier_train_workflow import train_lp, DEFAULT_VALIDATION_DAT
     DEFAULT_TRAINING_VALIDATION_CONFIG_FILE
 from workflows.data_preparation_workflow import data_prep
 
-from flytekit.common.tasks.task import SdkTask
-
-
-confusion_matrix_task = SdkTask.fetch(
+compute_confusion_matrix = SdkTask.fetch(
         project="kubecondemo2019-metrics",
         domain="development",
         name="demo_metrics.tasks.confusion_matrix.confusion_matrix",
@@ -60,7 +58,7 @@ class DriverWorkflow:
         validation_data_ratio=validation_data_ratio
     )
 
-    cm = confusion_matrix_task(
+    confusion_matrix_task = compute_confusion_matrix(
         y_true=evaluate.outputs.ground_truths,
         y_pred=evaluate.outputs.predictions,
         title="Confusion Matrix",
@@ -70,5 +68,5 @@ class DriverWorkflow:
 
     ground_truths = Output(evaluate.outputs.ground_truths, sdk_type=[Types.Integer])
     predictions = Output(evaluate.outputs.predictions, sdk_type=[Types.Integer])
-    confusion_matrix = Output(cm.outputs.matrix, sdk_type=[[Types.Integer]])
-    confusion_matrix_image = Output(cm.outputs.visual, sdk_type=Types.Blob)
+    confusion_matrix = Output(confusion_matrix_task.outputs.matrix, sdk_type=[[Types.Integer]])
+    confusion_matrix_image = Output(confusion_matrix_task.outputs.visual, sdk_type=Types.Blob)
