@@ -52,7 +52,7 @@ class DriverWorkflow:
         validation_data_ratio=validation_data_ratio
     )
 
-    cm = SdkTask.fetch(project="metrics", domain="development", name="confusion_matrix")(
+    cm = SdkTask.fetch(project="metrics", domain="development", name="demo_metrics.tasks.confusion_matrix.confusion_matrix")(
         y_true=evaluate.outputs.ground_truths,
         y_pred=evaluate.outputs.predictions,
         title="Confusion Matrix",
