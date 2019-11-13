@@ -52,13 +52,18 @@ class DriverWorkflow:
         validation_data_ratio=validation_data_ratio
     )
 
-    cm = SdkTask.fetch(project="kubecondemo2019-metrics", domain="development", name="demo_metrics.tasks.confusion_matrix.confusion_matrix")(
+    cm = SdkTask.fetch(
+        project="kubecondemo2019-metrics",
+        domain="development",
+        name="demo_metrics.tasks.confusion_matrix.confusion_matrix",
+        version="6b4d6996f1ab12a67597932bb8761c40fa43c1bc",
+    )(
         y_true=evaluate.outputs.ground_truths,
         y_pred=evaluate.outputs.predictions,
         title="Confusion Matrix",
         normalize=True,
         classes=["dirty", "clean"],
-        )
+    )
 
     ground_truths = Output(evaluate.outputs.ground_truths, sdk_type=[Types.Integer])
     predictions = Output(evaluate.outputs.predictions, sdk_type=[Types.Integer])
