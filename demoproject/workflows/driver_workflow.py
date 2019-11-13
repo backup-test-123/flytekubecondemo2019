@@ -14,7 +14,7 @@ confusion_matrix_task = SdkTask.fetch(
         project="kubecondemo2019-metrics",
         domain="development",
         name="demo_metrics.tasks.confusion_matrix.confusion_matrix",
-        version="649ccfc4f414362b45f77cf7bfad209c15809be9",
+        version="34b0892a084da9985f51569045c2980d14c32e8f",
     )
 
 
