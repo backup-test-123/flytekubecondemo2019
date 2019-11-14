@@ -8,6 +8,7 @@ from workflows.classifier_train_workflow import train_lp, DEFAULT_VALIDATION_DAT
     DEFAULT_TRAINING_VALIDATION_CONFIG_FILE
 from workflows.data_preparation_workflow import data_prep
 
+
 compute_confusion_matrix = SdkTask.fetch(
     project="kubecondemo2019-metrics",
     domain="development",
@@ -68,5 +69,4 @@ class DriverWorkflow:
 
     ground_truths = Output(evaluate.outputs.ground_truths, sdk_type=[Types.Integer])
     predictions = Output(evaluate.outputs.predictions, sdk_type=[Types.Integer])
-    confusion_matrix = Output(confusion_matrix_task.outputs.matrix, sdk_type=[[Types.Integer]])
     confusion_matrix_image = Output(confusion_matrix_task.outputs.visual, sdk_type=Types.Blob)
