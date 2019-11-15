@@ -120,7 +120,7 @@ def rearrange_data(
 
 
 @inputs(
-    training_validation_config_json=Types.String,
+    training_validation_config_json=Types.Generic,
     training_clean_mpblob=Types.MultiPartBlob,
     training_dirty_mpblob=Types.MultiPartBlob,
     validation_clean_mpblob=Types.MultiPartBlob,
@@ -148,8 +148,7 @@ def train_on_datasets(
                 download_data(training_dir.name, {"clean": training_clean_mpblob, "dirty": training_dirty_mpblob})
                 download_data(validation_dir.name, {"clean": validation_clean_mpblob, "dirty": validation_dirty_mpblob})
 
-                train_val_config = ujson.loads(training_validation_config_json)
-                resnet_config = train_val_config.get("resnet_config", {})
+                resnet_config = training_validation_config_json.get("resnet_config", {})
 
                 train_resnet50_model(
                     train_directory=training_dir.name,
