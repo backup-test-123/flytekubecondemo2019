@@ -1,5 +1,5 @@
 import ujson
-from flytekit.common.tasks.task import SdkTask
+# from flytekit.common.tasks.task import SdkTask
 from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import workflow_class, Output, Input
@@ -9,17 +9,17 @@ from workflows.classifier_train_workflow import train_lp, DEFAULT_VALIDATION_DAT
 from workflows.data_preparation_workflow import data_prep
 
 
-compute_confusion_matrix = SdkTask.fetch(
-    project="kubecondemo2019-metrics",
-    domain="development",
-    name="demo_metrics.tasks.confusion_matrix.confusion_matrix",
-    version="66b463748f25ef71c8cd4eb3001f00eafb83efc6",
-)
+# compute_confusion_matrix = SdkTask.fetch(
+#     project="kubecondemo2019-metrics",
+#     domain="development",
+#     name="demo_metrics.tasks.confusion_matrix.confusion_matrix",
+#     version="66b463748f25ef71c8cd4eb3001f00eafb83efc6",
+# )
 
 
 @inputs(models=[Types.Blob])
 @outputs(second=Types.Blob)
-@python_task(cache=True, cache_version="2")
+@python_task(cache=True, cache_version="1")
 def pick_second(wf_params, models, second):
     second.set(models[1])
 
@@ -59,14 +59,17 @@ class DriverWorkflow:
         validation_data_ratio=validation_data_ratio
     )
 
-    confusion_matrix_task = compute_confusion_matrix(
-        y_true=evaluate.outputs.ground_truths,
-        y_pred=evaluate.outputs.predictions,
-        title="Confusion Matrix",
-        normalize=True,
-        classes=["busy", "clear"],
-    )
+    # confusion_matrix_task = compute_confusion_matrix(
+    #     y_true=evaluate.outputs.ground_truths,
+    #     y_pred=evaluate.outputs.predictions,
+    #     title="Confusion Matrix",
+    #     normalize=True,
+    #     classes=["busy", "clear"],
+    # )
 
     ground_truths = Output(evaluate.outputs.ground_truths, sdk_type=[Types.Integer])
     predictions = Output(evaluate.outputs.predictions, sdk_type=[Types.Integer])
-    confusion_matrix_image = Output(confusion_matrix_task.outputs.visual, sdk_type=Types.Blob)
+    # confusion_matrix_image = Output(confusion_matrix_task.outputs.visual, sdk_type=Types.Blob)
+
+
+driver_workflow_lp = DriverWorkflow.create_launch_plan()

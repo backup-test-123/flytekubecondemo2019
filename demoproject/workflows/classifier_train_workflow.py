@@ -1,24 +1,21 @@
-import os
-import ujson
+import itertools
 import math
+import os
 import random
 import shutil
-import itertools
 
-from flytekit.sdk.workflow import workflow_class, Output, Input
-from flytekit.sdk.types import Types
-from flytekit.sdk.tasks import python_task, inputs, outputs
+import ujson
 from flytekit.common import utils as flytekit_utils
-
-from models.classifier.resnet50.train_resnet50 import train_resnet50_model, download_data
-from utils.flyte_utils.fetch_executions import fetch_workflow_latest_execution, fetch_workflow_execution
-from utils.flyte_utils.collect_blobs import collect_blobs
-
-from models.classifier.resnet50.constants import DEFAULT_IMG_SIZE
+from flytekit.sdk.tasks import python_task, inputs, outputs
+from flytekit.sdk.types import Types
+from flytekit.sdk.workflow import workflow_class, Output, Input
 from models.classifier.resnet50.constants import DEFAULT_BATCH_SIZE
-from models.classifier.resnet50.constants import DEFAULT_PATIENCE
 from models.classifier.resnet50.constants import DEFAULT_EPOCHS
+from models.classifier.resnet50.constants import DEFAULT_IMG_SIZE
+from models.classifier.resnet50.constants import DEFAULT_PATIENCE
 from models.classifier.resnet50.constants import DEFAULT_WEIGHTS
+from models.classifier.resnet50.train_resnet50 import train_resnet50_model, download_data
+from utils.flyte_utils.collect_blobs import collect_blobs
 
 DEFAULT_PROJECT_NAME = "flytekubecondemo2019"
 DATAPREP_WORKFLOW_NAME = "workflows.data_preparation_workflow.DataPreparationWorkflow"
@@ -30,6 +27,7 @@ PURPOSES = ['training', 'validation']
 DEFAULT_TRAINING_VALIDATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config_demo.json"
 DEFAULT_DATAPREP_WF_EXECUTION_ID = "ff25dd48a39934dc5b96"  # staging
 # DEFAULT_DATAPREP_WF_EXECUTION_ID = "fab5d832671ec4c31819"  # prod
+
 
 def split_training_validation_streams(labeled_streams, validation_data_ratio):
     n_validation_streams = {
@@ -57,7 +55,7 @@ def split_training_validation_streams(labeled_streams, validation_data_ratio):
     validation_clean_mpblob=Types.MultiPartBlob,
     validation_dirty_mpblob=Types.MultiPartBlob,
 )
-@python_task(cache=True, cache_version="5", cpu_request="4", memory_request="8Gi")
+@python_task(cache=True, cache_version="4", cpu_request="4", memory_request="8Gi")
 def rearrange_data(
         wf_params,
         available_streams_mpblobs,
@@ -131,7 +129,7 @@ def rearrange_data(
     model_blobs=[Types.Blob],
     model_files_names=[Types.String],
 )
-@python_task(cache=True, cache_version="3", gpu_request="1", gpu_limit="1", memory_request="64Gi")
+@python_task(cache=True, cache_version="2", gpu_request="1", gpu_limit="1", memory_request="64Gi")
 def train_on_datasets(
         wf_params,
         training_clean_mpblob,

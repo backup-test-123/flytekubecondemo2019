@@ -1,19 +1,18 @@
 from pathlib import Path
 
-import os
-import shutil
 import ujson
-from flytekit.sdk.workflow import workflow_class, Output, Input
-from flytekit.sdk.types import Types
-from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.common import utils as flytekit_utils
-from models.classifier.resnet50.train_resnet50 import train_resnet50_model, download_data
-from utils.flyte_utils.fetch_executions import fetch_workflow_execution
-from models.classifier.resnet50.evaluate_resnet50 import predict_with_resnet50_model
+from flytekit.sdk.tasks import python_task, inputs, outputs
+from flytekit.sdk.types import Types
+from flytekit.sdk.workflow import workflow_class, Output, Input
 from models.classifier.resnet50.constants import DEFAULT_BATCH_SIZE, DEFAULT_IMG_SIZE
 from models.classifier.resnet50.constants import DEFAULT_CLASS_LABELS, DEFAULT_POSITIVE_LABEL
-from utils.metric_utils.metric_utils import calculate_roc_curve, calculate_precision_recall_curve, calculate_cutoff_youdens_j, export_results
+from models.classifier.resnet50.evaluate_resnet50 import predict_with_resnet50_model
+from models.classifier.resnet50.train_resnet50 import download_data
 from utils.flyte_utils.collect_blobs import collect_blobs
+from utils.flyte_utils.fetch_executions import fetch_workflow_execution
+from utils.metric_utils.metric_utils import calculate_roc_curve, calculate_precision_recall_curve, \
+    calculate_cutoff_youdens_j, export_results
 from workflows.classifier_train_workflow import rearrange_data, DEFAULT_VALIDATION_DATA_RATIO
 
 DEFAULT_PROJECT_NAME = "flytekubecondemo2019"
@@ -44,7 +43,7 @@ def validate_model_config(wf_params, model_config_path, model_config_string):
     ground_truths_out=[Types.Integer],
     predictions_out=[[Types.Float]],
 )
-@python_task(cache=True, cache_version="2", gpu_request="1", gpu_limit="1", memory_request="64Gi")
+@python_task(cache=True, cache_version="1", gpu_request="1", gpu_limit="1", memory_request="64Gi")
 def evaluate_on_datasets(
     wf_params,
     model,
@@ -78,7 +77,7 @@ def evaluate_on_datasets(
     result_blobs=[Types.Blob],
     result_files_names=[Types.String]
 )
-@python_task(cache=True, cache_version="2")
+@python_task(cache=True, cache_version="1")
 def analyze_prediction_results(
     wf_params,
     ground_truths,
@@ -126,7 +125,7 @@ def analyze_prediction_results(
 
 @inputs(model=Types.Blob)
 @outputs(model_blob=Types.Blob)
-@python_task(cache=True, cache_version="2")
+@python_task(cache=True, cache_version="1")
 def fetch_model(wf_params, model, model_blob):
     if not model:
         print("Fetching model from a pinned previous execution")
@@ -141,7 +140,7 @@ def fetch_model(wf_params, model, model_blob):
     ground_truths=[Types.Integer],
     probabilities=[[Types.Float]])
 @outputs(predictions=[Types.Integer], threshold=Types.Float, thresholds=[Types.Float])
-@python_task(cache=False, cache_version="2")
+@python_task(cache=False, cache_version="1")
 def generate_predictions(wf_params, ground_truths, probabilities, predictions, threshold, thresholds):
     pos_label_idx = DEFAULT_CLASS_LABELS.index(DEFAULT_POSITIVE_LABEL)
     tpr, fpr, roc_thresholds = calculate_precision_recall_curve(
@@ -160,7 +159,7 @@ def generate_predictions(wf_params, ground_truths, probabilities, predictions, t
     ground_truths=[Types.Integer],
     probabilities=[[Types.Float]])
 @outputs(predictions=[Types.Integer])
-@python_task(cache=False, cache_version="2.0")
+@python_task(cache=False, cache_version="1.0")
 def predict(wf_params, ground_truths, probabilities, predictions):
     predictions.set([0 if p[0] > p[1] else 1 for p in probabilities])
 
@@ -206,5 +205,6 @@ class ClassifierEvaluateWorkflow:
     analyze_results_files_names = Output(analyze_task.outputs.result_files_names, sdk_type=[Types.String])
     ground_truths = Output(evaluate_on_datasets_task.outputs.ground_truths_out, sdk_type=[Types.Integer])
     predictions = Output(predict.outputs.predictions, sdk_type=[Types.Integer])
+
 
 evaluate_lp = ClassifierEvaluateWorkflow.create_launch_plan()

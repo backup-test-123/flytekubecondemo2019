@@ -1,14 +1,12 @@
-import zipfile
 from os import listdir
 from os.path import join, isfile, basename, exists
 
 from flytekit.common import utils as flytekit_utils
-from flytekit.sdk.types import Types
 from flytekit.sdk.tasks import python_task, dynamic_task, outputs, inputs
+from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import workflow_class, Output, Input
 from utils.frame_sampling.luminance_sampling import luminance_sample_collection
 from utils.video_tools.video_to_frames import video_to_frames
-
 
 STREAM_EXTERNAL_PATH_FORMAT = "{remote_prefix}/{stream_name}.{stream_extension}"
 
@@ -27,7 +25,7 @@ DEFAULT_LUMINANCE_SAMPLE_SIZE = 20
     selected_image_mpblob=Types.MultiPartBlob,
     selected_file_names=[Types.String]
 )
-@python_task(cache=True, cache_version="2", cpu_request="8", memory_request="32Gi")
+@python_task(cache=True, cache_version="1", cpu_request="8", memory_request="32Gi")
 def luminance_select_collection_worker(
     wf_params,
     raw_frames_mpblob,
@@ -70,7 +68,7 @@ def luminance_select_collection_worker(
     selected_image_mpblobs=[Types.MultiPartBlob],
     selected_file_names=[[Types.String]],
 )
-@dynamic_task(cache=True, cache_version="2")
+@dynamic_task(cache=True, cache_version="1")
 def luminance_select_collections(
     wf_params,
     raw_frames_mpblobs,
@@ -110,7 +108,7 @@ def luminance_select_collections(
 @outputs(
     raw_frames_mpblob=Types.MultiPartBlob,
 )
-@python_task(cache=True, cache_version="2", memory_request='8000Mi')
+@python_task(cache=True, cache_version="1", memory_request='8000Mi')
 def extract_from_video_collection_worker(
     wf_params, video_blob, raw_frames_mpblob,
 ):
@@ -143,7 +141,7 @@ def extract_from_video_collection_worker(
 @outputs(
     raw_frames_mpblobs=[Types.MultiPartBlob],
 )
-@dynamic_task(cache=True, cache_version="2")
+@dynamic_task(cache=True, cache_version="1")
 def extract_from_video_collections(
     wf_params, video_blobs, raw_frames_mpblobs,
 ):
@@ -169,7 +167,7 @@ def extract_from_video_collections(
 @outputs(
     video_blob=Types.Blob,
 )
-@python_task(cache=True, cache_version='2')
+@python_task(cache=True, cache_version='1')
 def download_video_worker(
     wf_params, video_external_path, video_blob,
 ):
@@ -189,7 +187,7 @@ def download_video_worker(
     downloaded_streams_blobs=[Types.Blob],
     downloaded_streams_names=[Types.String],
 )
-@dynamic_task(cache=True, cache_version='2', memory_request='800Mi')
+@dynamic_task(cache=True, cache_version='1', memory_request='800Mi')
 def download_videos(
     wf_params, streams_external_storage_prefix, streams_names, stream_extension,
         downloaded_streams_blobs, downloaded_streams_names,
@@ -243,5 +241,6 @@ class DataPreparationWorkflow:
     selected_frames_mpblobs_metadata = Output(luminance_select_collections_task.outputs.selected_file_names,
                                               sdk_type=[[Types.String]])
     streams_names_out = Output(streams_names, sdk_type=[Types.String])
+
 
 data_prep = DataPreparationWorkflow.create_launch_plan()
