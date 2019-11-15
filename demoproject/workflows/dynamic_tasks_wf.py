@@ -1,4 +1,4 @@
-from flytekit.sdk.tasks import dynamic_task, python_task, inputs
+from flytekit.sdk.tasks import dynamic_task, python_task, inputs, hive_task
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import Input, workflow_class
 
@@ -19,3 +19,29 @@ def custom_array_size(wf_params, array_size):
 class CustomArraySizeWorkflow:
     array_size = Input(Types.Integer, default=3)
     arr = custom_array_size(array_size=array_size)
+
+
+@hive_task
+def failing_hive_task(wf_params):
+    return 'select reflect("java.lang.Threassd", "sleep", bigint(10000));'
+
+
+@python_task
+def my_other_sub_task(wf_params):
+    wf_params.logging.warn("hello world 2")
+
+
+@dynamic_task()
+def failing_task(wf_params):
+    yield my_sub_task()
+    yield my_sub_task()
+    yield my_sub_task()
+    yield my_other_sub_task()
+    yield failing_hive_task()
+    yield failing_hive_task()
+    yield failing_hive_task()
+
+
+@workflow_class
+class FailingWorkflow:
+    failing_dynamic_task = failing_task()
