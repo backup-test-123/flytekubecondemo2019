@@ -149,17 +149,22 @@ def train_on_datasets(
                 download_data(validation_dir.name, {"clean": validation_clean_mpblob, "dirty": validation_dirty_mpblob})
 
                 resnet_config = training_validation_config_json.get("resnet_config", {})
+                patience = int(resnet_config.get("patience", None) or DEFAULT_PATIENCE)
+                img_size = int(resnet_config.get("target_size", None) or DEFAULT_IMG_SIZE)
+                batch_size = [int(coord) for coord in (resnet_config.get("batch_size", None) or DEFAULT_BATCH_SIZE)]
+                epochs = int(resnet_config.get("epochs", None) or DEFAULT_EPOCHS)
+                weights = str(resnet_config.get("weights", None) or DEFAULT_WEIGHTS)
 
                 train_resnet50_model(
                     train_directory=training_dir.name,
                     validation_directory=validation_dir.name,
                     output_model_folder=output_models_dir.name,
                     logger=wf_params.logging,
-                    patience=(resnet_config.get("patience", None) or DEFAULT_PATIENCE),
-                    size=(resnet_config.get("target_size", None) or DEFAULT_IMG_SIZE),
-                    batch_size=(resnet_config.get("batch_size", None) or DEFAULT_BATCH_SIZE),
-                    epochs=(resnet_config.get("epochs", None) or DEFAULT_EPOCHS),
-                    weights=(resnet_config.get("weights", None) or DEFAULT_WEIGHTS),
+                    patience=patience,
+                    size=img_size,
+                    batch_size=batch_size,
+                    epochs=epochs,
+                    weights=weights,
                 )
                 # save results to Workflow output
                 blobs, files_names_list = collect_blobs(output_models_dir.name)
