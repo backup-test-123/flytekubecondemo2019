@@ -150,8 +150,8 @@ def train_on_datasets(
 
                 resnet_config = training_validation_config_json.get("resnet_config", {})
                 patience = int(resnet_config.get("patience", None) or DEFAULT_PATIENCE)
-                img_size = int(resnet_config.get("target_size", None) or DEFAULT_IMG_SIZE)
-                batch_size = [int(coord) for coord in (resnet_config.get("batch_size", None) or DEFAULT_BATCH_SIZE)]
+                img_size = [int(dim) for dim in (resnet_config.get("target_size", None) or DEFAULT_IMG_SIZE)]
+                batch_size = int(resnet_config.get("batch_size", None) or DEFAULT_BATCH_SIZE)
                 epochs = int(resnet_config.get("epochs", None) or DEFAULT_EPOCHS)
                 weights = str(resnet_config.get("weights", None) or DEFAULT_WEIGHTS)
 
