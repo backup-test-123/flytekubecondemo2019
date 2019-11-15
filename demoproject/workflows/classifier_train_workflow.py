@@ -129,7 +129,7 @@ def rearrange_data(
     model_blobs=[Types.Blob],
     model_files_names=[Types.String],
 )
-@python_task(cache=True, cache_version="2", gpu_request="1", gpu_limit="1", memory_request="64Gi")
+@python_task(cache=True, cache_version="1000 epochs", gpu_request="4", gpu_limit="4", memory_request="64Gi")
 def train_on_datasets(
         wf_params,
         training_clean_mpblob,
@@ -188,6 +188,7 @@ class ClassifierTrainWorkflow:
 
     trained_models = Output(train_on_datasets_task.outputs.model_blobs, sdk_type=[Types.Blob])
     model_file_names = Output(train_on_datasets_task.outputs.model_files_names, sdk_type=[Types.String])
+
 
 train_lp = ClassifierTrainWorkflow.create_launch_plan()
 
