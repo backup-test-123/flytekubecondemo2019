@@ -157,10 +157,10 @@ def train_on_datasets(
                     output_model_folder=output_models_dir.name,
                     logger=wf_params.logging,
                     patience=(resnet_config.get("patience", None) or DEFAULT_PATIENCE),
-                    size=(resnet_config.get("target_size", None) or DEFAULT_PATIENCE),
-                    batch_size=(resnet_config.get("batch_size", None) or DEFAULT_PATIENCE),
-                    epochs=(resnet_config.get("epochs", None) or DEFAULT_PATIENCE),
-                    weights=(resnet_config.get("weights", None) or DEFAULT_PATIENCE),
+                    size=(resnet_config.get("target_size", None) or DEFAULT_IMG_SIZE),
+                    batch_size=(resnet_config.get("batch_size", None) or DEFAULT_BATCH_SIZE),
+                    epochs=(resnet_config.get("epochs", None) or DEFAULT_EPOCHS),
+                    weights=(resnet_config.get("weights", None) or DEFAULT_WEIGHTS),
                 )
                 # save results to Workflow output
                 blobs, files_names_list = collect_blobs(output_models_dir.name)
