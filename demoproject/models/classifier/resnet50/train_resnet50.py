@@ -44,8 +44,13 @@ def train_resnet50_model(
     logger.info(
         f"Train Resnet 50 called with Train: {train_directory}, Validation: {validation_directory}"
     )
+
     print_dir(train_directory, logger)
     print_dir(validation_directory, logger)
+
+    logger.info(
+        f"Patience: {patience}, epochs: {epochs}, batch_size: {batch_size}, size: {size}, weights: {weights}"
+    )
 
     # Creating a data generator for training data
     gen = keras.preprocessing.image.ImageDataGenerator()
