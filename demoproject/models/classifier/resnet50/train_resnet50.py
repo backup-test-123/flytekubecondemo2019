@@ -2,11 +2,14 @@ import os
 
 import keras
 import ujson
+import tensorflow as tf
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Dense
 from keras.models import Model
 from keras.optimizers import Adam
+from keras.utils import multi_gpu_model
+
 
 from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.common import utils as flytekit_utils
@@ -30,6 +33,7 @@ def print_dir(directory, logger):
 
 
 # Training function
+# noinspection DuplicatedCode
 def train_resnet50_model(
     train_directory,
     validation_directory,
@@ -40,19 +44,29 @@ def train_resnet50_model(
     batch_size,
     size,
     weights,
+    gpus=1,
 ):
     logger.info(
         f"Train Resnet 50 called with Train: {train_directory}, Validation: {validation_directory}"
     )
+
     print_dir(train_directory, logger)
     print_dir(validation_directory, logger)
 
-    # Creating a data generator for training data
-    gen = keras.preprocessing.image.ImageDataGenerator()
+    logger.info(
+        f"Patience: {patience}, epochs: {epochs}, batch_size: {batch_size}, size: {size}, weights: {weights}"
+    )
+
+    # Creating a data generator for training data and apply augmentation
+    gen = keras.preprocessing.image.ImageDataGenerator(
+        horizontal_flip=True,
+        vertical_flip=True,
+    )
 
     # Creating a data generator and configuring online data augmentation for validation data
     val_gen = keras.preprocessing.image.ImageDataGenerator(
-        horizontal_flip=True, vertical_flip=True
+        horizontal_flip=True,
+        vertical_flip=True,
     )
 
     # Organizing the training images into batches
@@ -90,27 +104,32 @@ def train_resnet50_model(
     classes = list(iter(batches.class_indices))
     model.layers.pop()
 
-    # Since we don't have much training data, we want to leverage the feature learned from a larger dataset, in this,
-    # case, imagenet. So we fine-tune based on a pre-trained weight by freezing the weights except for the last layer
+    # Since we don't have much training data, we want to leverage the feature learned from a larger dataset,
+    # in this case, imagenet. So we fine-tune based on a pre-trained weight by freezing the weights except for
+    # the last layer
     for layer in model.layers:
         layer.trainable = False
 
-    # Attaching a fully-connected layer with softmax activation as the last layer to support multi-class classification
+    # Attaching a fully-connected layer with softmax activation as the last layer to support multi-class
+    # classification
     last = model.layers[-1].output
     x = Dense(len(classes), activation="softmax")(last)
 
-    finetuned_model = Model(inputs=model.input, outputs=x)
+    model = Model(inputs=model.input, outputs=x)
+
+    for c in batches.class_indices:
+        classes[batches.class_indices[c]] = c
+    model.classes = classes
+
+    if gpus > 1:
+        model = multi_gpu_model(model, gpus=gpus)
 
     # Compile the model with an optimizer, a loss function, and a list of metrics of choice
-    finetuned_model.compile(
+    model.compile(
         optimizer=Adam(lr=0.00001),
         loss="categorical_crossentropy",
         metrics=["accuracy"],
     )
-
-    for c in batches.class_indices:
-        classes[batches.class_indices[c]] = c
-    finetuned_model.classes = classes
 
     # Setting early stopping thresholds to reduce training time
     early_stopping = EarlyStopping(patience=patience)
@@ -121,7 +140,7 @@ def train_resnet50_model(
     )
 
     # Train it
-    finetuned_model.fit_generator(
+    model.fit_generator(
         batches,
         steps_per_epoch=num_train_steps,
         epochs=epochs,
@@ -129,7 +148,7 @@ def train_resnet50_model(
         validation_data=val_batches,
         validation_steps=num_valid_steps,
     )
-    finetuned_model.save(output_model_folder + "/" + FINAL_FILE_NAME)
+    model.save(output_model_folder + "/" + FINAL_FILE_NAME)
 
 
 def download_data(base_dir, mpblobs):

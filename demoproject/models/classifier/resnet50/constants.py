@@ -1,6 +1,6 @@
 
 # Default ResNet50-specific hyper-parameters
-DEFAULT_IMG_SIZE = (224, 224)
+DEFAULT_IMG_SIZE = [224, 224]
 DEFAULT_BATCH_SIZE = 16
 DEFAULT_CLASS_LABELS = sorted(
     ["clean", "dirty"]

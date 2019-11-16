@@ -9,6 +9,7 @@ from flytekit.common import utils as flytekit_utils
 from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import workflow_class, Output, Input
+import flytekit.models.task as task_model
 from models.classifier.resnet50.constants import DEFAULT_BATCH_SIZE
 from models.classifier.resnet50.constants import DEFAULT_EPOCHS
 from models.classifier.resnet50.constants import DEFAULT_IMG_SIZE
@@ -120,6 +121,7 @@ def rearrange_data(
 
 
 @inputs(
+    training_validation_config_json=Types.Generic,
     training_clean_mpblob=Types.MultiPartBlob,
     training_dirty_mpblob=Types.MultiPartBlob,
     validation_clean_mpblob=Types.MultiPartBlob,
@@ -129,9 +131,10 @@ def rearrange_data(
     model_blobs=[Types.Blob],
     model_files_names=[Types.String],
 )
-@python_task(cache=True, cache_version="2", gpu_request="1", gpu_limit="1", memory_request="64Gi")
+@python_task(cache=True, cache_version="1000 epochs", gpu_request="1", gpu_limit="1", memory_request="64Gi")
 def train_on_datasets(
         wf_params,
+        training_validation_config_json,
         training_clean_mpblob,
         validation_clean_mpblob,
         training_dirty_mpblob,
@@ -146,16 +149,27 @@ def train_on_datasets(
                 download_data(training_dir.name, {"clean": training_clean_mpblob, "dirty": training_dirty_mpblob})
                 download_data(validation_dir.name, {"clean": validation_clean_mpblob, "dirty": validation_dirty_mpblob})
 
+                resnet_config = training_validation_config_json.get("resnet_config", {})
+                patience = int(resnet_config.get("patience", None) or DEFAULT_PATIENCE)
+                img_size = [int(dim) for dim in (resnet_config.get("target_size", None) or DEFAULT_IMG_SIZE)]
+                batch_size = int(resnet_config.get("batch_size", None) or DEFAULT_BATCH_SIZE)
+                epochs = int(resnet_config.get("epochs", None) or DEFAULT_EPOCHS)
+                weights = str(resnet_config.get("weights", None) or DEFAULT_WEIGHTS)
+
+                gpu_request = int([r.value for r in train_on_datasets.container.resources.requests if
+                                   r.name == task_model.Resources.ResourceName.GPU][0]) or 0
+
                 train_resnet50_model(
                     train_directory=training_dir.name,
                     validation_directory=validation_dir.name,
                     output_model_folder=output_models_dir.name,
                     logger=wf_params.logging,
-                    patience=DEFAULT_PATIENCE,
-                    size=DEFAULT_IMG_SIZE,
-                    batch_size=DEFAULT_BATCH_SIZE,
-                    epochs=DEFAULT_EPOCHS,
-                    weights=DEFAULT_WEIGHTS,
+                    patience=patience,
+                    size=img_size,
+                    batch_size=batch_size,
+                    epochs=epochs,
+                    weights=weights,
+                    gpus=gpu_request,
                 )
                 # save results to Workflow output
                 blobs, files_names_list = collect_blobs(output_models_dir.name)
@@ -180,6 +194,7 @@ class ClassifierTrainWorkflow:
     )
 
     train_on_datasets_task = train_on_datasets(
+        training_validation_config_json=training_validation_config_json,
         training_clean_mpblob=rearrange_data_task.outputs.training_clean_mpblob,
         training_dirty_mpblob=rearrange_data_task.outputs.training_dirty_mpblob,
         validation_clean_mpblob=rearrange_data_task.outputs.validation_clean_mpblob,
@@ -188,6 +203,7 @@ class ClassifierTrainWorkflow:
 
     trained_models = Output(train_on_datasets_task.outputs.model_blobs, sdk_type=[Types.Blob])
     model_file_names = Output(train_on_datasets_task.outputs.model_files_names, sdk_type=[Types.String])
+
 
 train_lp = ClassifierTrainWorkflow.create_launch_plan()
 

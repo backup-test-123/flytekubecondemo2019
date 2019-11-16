@@ -12,10 +12,10 @@ def calculate_roc_curve(ground_truths, predictions, pos_label_idx):
         return [], [], []
 
     predictions = [p[pos_label_idx] for p in predictions]
-    tpr, fpr, roc_thresholds = roc_curve(
+    fpr, tpr, roc_thresholds = roc_curve(
         y_true=ground_truths, y_score=predictions, pos_label=pos_label_idx
     )
-    return tpr, fpr, roc_thresholds
+    return fpr, tpr, roc_thresholds
 
 
 def calculate_precision_recall_curve(ground_truths, predictions, pos_label_idx):
