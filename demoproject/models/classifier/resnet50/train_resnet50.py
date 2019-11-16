@@ -57,12 +57,16 @@ def train_resnet50_model(
         f"Patience: {patience}, epochs: {epochs}, batch_size: {batch_size}, size: {size}, weights: {weights}"
     )
 
-    # Creating a data generator for training data
-    gen = keras.preprocessing.image.ImageDataGenerator()
+    # Creating a data generator for training data and apply augmentation
+    gen = keras.preprocessing.image.ImageDataGenerator(
+        horizontal_flip=True,
+        vertical_flip=True,
+    )
 
     # Creating a data generator and configuring online data augmentation for validation data
     val_gen = keras.preprocessing.image.ImageDataGenerator(
-        horizontal_flip=True, vertical_flip=True
+        horizontal_flip=True,
+        vertical_flip=True,
     )
 
     # Organizing the training images into batches
@@ -120,22 +124,12 @@ def train_resnet50_model(
     if gpus > 1:
         model = multi_gpu_model(model, gpus=gpus)
 
+    # Compile the model with an optimizer, a loss function, and a list of metrics of choice
     model.compile(
         optimizer=Adam(lr=0.00001),
         loss="categorical_crossentropy",
         metrics=["accuracy"],
     )
-
-    # Compile the model with an optimizer, a loss function, and a list of metrics of choice
-    # finetuned_model.compile(
-    #     optimizer=Adam(lr=0.00001),
-    #     loss="categorical_crossentropy",
-    #     metrics=["accuracy"],
-    # )
-
-    # for c in batches.class_indices:
-    #     classes[batches.class_indices[c]] = c
-    # finetuned_model.classes = classes
 
     # Setting early stopping thresholds to reduce training time
     early_stopping = EarlyStopping(patience=patience)
