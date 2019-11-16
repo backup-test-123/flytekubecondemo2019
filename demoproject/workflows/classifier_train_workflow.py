@@ -155,6 +155,9 @@ def train_on_datasets(
                 epochs = int(resnet_config.get("epochs", None) or DEFAULT_EPOCHS)
                 weights = str(resnet_config.get("weights", None) or DEFAULT_WEIGHTS)
 
+                gpu_request = int([r.value for r in train_on_datasets.container.resources.requests if
+                                   r.name == train_on_datasets.Resources.ResourceName.GPU][0]) or 0
+
                 train_resnet50_model(
                     train_directory=training_dir.name,
                     validation_directory=validation_dir.name,
@@ -165,7 +168,7 @@ def train_on_datasets(
                     batch_size=batch_size,
                     epochs=epochs,
                     weights=weights,
-                    gpus=int(train_on_datasets.gpu_request)
+                    gpus=gpu_request,
                 )
                 # save results to Workflow output
                 blobs, files_names_list = collect_blobs(output_models_dir.name)
