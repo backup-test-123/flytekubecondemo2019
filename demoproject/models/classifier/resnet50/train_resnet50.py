@@ -2,11 +2,14 @@ import os
 
 import keras
 import ujson
+import tensorflow as tf
 from keras.callbacks import EarlyStopping
 from keras.callbacks import ModelCheckpoint
 from keras.layers import Dense
 from keras.models import Model
 from keras.optimizers import Adam
+from keras.utils import multi_gpu_model
+
 
 from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.common import utils as flytekit_utils
@@ -30,6 +33,7 @@ def print_dir(directory, logger):
 
 
 # Training function
+# noinspection DuplicatedCode
 def train_resnet50_model(
     train_directory,
     validation_directory,
@@ -40,6 +44,7 @@ def train_resnet50_model(
     batch_size,
     size,
     weights,
+    gpus=1,
 ):
     logger.info(
         f"Train Resnet 50 called with Train: {train_directory}, Validation: {validation_directory}"
@@ -88,34 +93,48 @@ def train_resnet50_model(
         raise Exception("No validation batches.")
     logger.info("num_valid_steps = %s" % num_valid_steps)
 
-    # Picking the predefined ResNet50 as our model, and initialize it with a weight file
-    model = keras.applications.resnet50.ResNet50(weights=weights)
+    with tf.device('/cpu:0'):
+        # Picking the predefined ResNet50 as our model, and initialize it with a weight file
+        model = keras.applications.resnet50.ResNet50(weights=weights)
 
-    # Change resnet from a binary classifier to a multi-class classifier by removing the last later
-    classes = list(iter(batches.class_indices))
-    model.layers.pop()
+        # Change resnet from a binary classifier to a multi-class classifier by removing the last later
+        classes = list(iter(batches.class_indices))
+        model.layers.pop()
 
-    # Since we don't have much training data, we want to leverage the feature learned from a larger dataset, in this,
-    # case, imagenet. So we fine-tune based on a pre-trained weight by freezing the weights except for the last layer
-    for layer in model.layers:
-        layer.trainable = False
+        # Since we don't have much training data, we want to leverage the feature learned from a larger dataset,
+        # in this case, imagenet. So we fine-tune based on a pre-trained weight by freezing the weights except for
+        # the last layer
+        for layer in model.layers:
+            layer.trainable = False
 
-    # Attaching a fully-connected layer with softmax activation as the last layer to support multi-class classification
-    last = model.layers[-1].output
-    x = Dense(len(classes), activation="softmax")(last)
+        # Attaching a fully-connected layer with softmax activation as the last layer to support multi-class
+        # classification
+        last = model.layers[-1].output
+        x = Dense(len(classes), activation="softmax")(last)
 
-    finetuned_model = Model(inputs=model.input, outputs=x)
+        finetuned_model = Model(inputs=model.input, outputs=x)
 
-    # Compile the model with an optimizer, a loss function, and a list of metrics of choice
-    finetuned_model.compile(
+        for c in batches.class_indices:
+            classes[batches.class_indices[c]] = c
+        finetuned_model.classes = classes
+
+    parallel_model = multi_gpu_model(finetuned_model, gpus=gpus)
+    parallel_model.compile(
         optimizer=Adam(lr=0.00001),
         loss="categorical_crossentropy",
         metrics=["accuracy"],
     )
 
-    for c in batches.class_indices:
-        classes[batches.class_indices[c]] = c
-    finetuned_model.classes = classes
+    # Compile the model with an optimizer, a loss function, and a list of metrics of choice
+    # finetuned_model.compile(
+    #     optimizer=Adam(lr=0.00001),
+    #     loss="categorical_crossentropy",
+    #     metrics=["accuracy"],
+    # )
+
+    # for c in batches.class_indices:
+    #     classes[batches.class_indices[c]] = c
+    # finetuned_model.classes = classes
 
     # Setting early stopping thresholds to reduce training time
     early_stopping = EarlyStopping(patience=patience)
@@ -126,7 +145,7 @@ def train_resnet50_model(
     )
 
     # Train it
-    finetuned_model.fit_generator(
+    parallel_model.fit_generator(
         batches,
         steps_per_epoch=num_train_steps,
         epochs=epochs,
@@ -134,7 +153,7 @@ def train_resnet50_model(
         validation_data=val_batches,
         validation_steps=num_valid_steps,
     )
-    finetuned_model.save(output_model_folder + "/" + FINAL_FILE_NAME)
+    parallel_model.save(output_model_folder + "/" + FINAL_FILE_NAME)
 
 
 def download_data(base_dir, mpblobs):

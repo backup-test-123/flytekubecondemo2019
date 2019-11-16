@@ -130,7 +130,7 @@ def rearrange_data(
     model_blobs=[Types.Blob],
     model_files_names=[Types.String],
 )
-@python_task(cache=True, cache_version="1000 epochs", gpu_request="4", gpu_limit="4", memory_request="64Gi")
+@python_task(cache=True, cache_version="1000 epochs", gpu_request="8", gpu_limit="8", memory_request="64Gi")
 def train_on_datasets(
         wf_params,
         training_validation_config_json,
@@ -165,6 +165,7 @@ def train_on_datasets(
                     batch_size=batch_size,
                     epochs=epochs,
                     weights=weights,
+                    gpus=int(train_on_datasets.gpu_request)
                 )
                 # save results to Workflow output
                 blobs, files_names_list = collect_blobs(output_models_dir.name)

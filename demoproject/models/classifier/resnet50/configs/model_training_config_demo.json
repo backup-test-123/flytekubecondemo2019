@@ -1,6 +1,6 @@
 {
   "resnet_config": {
-    "patience": 30,
+    "patience": 100,
     "epochs": 1000,
     "batch_size": 32,
     "target_size": [
