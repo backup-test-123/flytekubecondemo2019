@@ -143,7 +143,7 @@ def fetch_model(wf_params, model, model_blob):
 @python_task(cache=False, cache_version="1")
 def generate_predictions(wf_params, ground_truths, probabilities, predictions, threshold, thresholds):
     pos_label_idx = DEFAULT_CLASS_LABELS.index(DEFAULT_POSITIVE_LABEL)
-    fpr, tpr, roc_thresholds = calculate_precision_recall_curve(
+    fpr, tpr, roc_thresholds = calculate_roc_curve(
         ground_truths,
         probabilities,
         pos_label_idx=pos_label_idx,
