@@ -12,10 +12,10 @@ def calculate_roc_curve(ground_truths, predictions, pos_label_idx):
         return [], [], []
 
     predictions = [p[pos_label_idx] for p in predictions]
-    tpr, fpr, roc_thresholds = roc_curve(
+    fpr, tpr, roc_thresholds = roc_curve(
         y_true=ground_truths, y_score=predictions, pos_label=pos_label_idx
     )
-    return tpr, fpr, roc_thresholds
+    return fpr, tpr, roc_thresholds
 
 
 def calculate_precision_recall_curve(ground_truths, predictions, pos_label_idx):
@@ -47,6 +47,7 @@ def calculate_cutoff_youdens_j(tpr, fpr, thresholds):
     represented by (tpr, fpr, thresholds)
     """
     # Reference: https://stackoverflow.com/questions/28719067/roc-curve-and-cut-off-point-python
+    # j_scores = [abs(t-(1.0-f)) for t, f in zip(tpr, fpr)]
     j_scores = tpr - fpr
     j_ordered = sorted(zip(j_scores, thresholds))
     return j_ordered[-1][1]
