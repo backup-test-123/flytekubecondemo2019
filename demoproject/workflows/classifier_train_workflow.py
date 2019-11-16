@@ -9,6 +9,7 @@ from flytekit.common import utils as flytekit_utils
 from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import workflow_class, Output, Input
+import flytekit.models.task as task_model
 from models.classifier.resnet50.constants import DEFAULT_BATCH_SIZE
 from models.classifier.resnet50.constants import DEFAULT_EPOCHS
 from models.classifier.resnet50.constants import DEFAULT_IMG_SIZE
@@ -156,7 +157,7 @@ def train_on_datasets(
                 weights = str(resnet_config.get("weights", None) or DEFAULT_WEIGHTS)
 
                 gpu_request = int([r.value for r in train_on_datasets.container.resources.requests if
-                                   r.name == train_on_datasets.Resources.ResourceName.GPU][0]) or 0
+                                   r.name == task_model.Resources.ResourceName.GPU][0]) or 0
 
                 train_resnet50_model(
                     train_directory=training_dir.name,
