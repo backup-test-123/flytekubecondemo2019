@@ -146,7 +146,7 @@ def train_resnet50_model(
     )
 
     # Train it
-    parallel_model.fit_generator(
+    model.fit_generator(
         batches,
         steps_per_epoch=num_train_steps,
         epochs=epochs,
@@ -154,7 +154,7 @@ def train_resnet50_model(
         validation_data=val_batches,
         validation_steps=num_valid_steps,
     )
-    parallel_model.save(output_model_folder + "/" + FINAL_FILE_NAME)
+    model.save(output_model_folder + "/" + FINAL_FILE_NAME)
 
 
 def download_data(base_dir, mpblobs):
