@@ -1,3 +1,5 @@
+import time
+
 from flytekit.sdk.tasks import dynamic_task, python_task, inputs, hive_task
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import Input, workflow_class
@@ -42,6 +44,35 @@ def failing_task(wf_params):
     yield failing_hive_task()
 
 
+@python_task
+def my_succeeding_sub_task(wf_params):
+    time.sleep(1000)
+
+
+@python_task
+def my_failing_sub_task(wf_params):
+    raise Exception("Failure expected")
+
+
+@python_task
+def my_failing_sub_task_2(wf_params):
+    raise Exception("Failure expected 2")
+
+
+@dynamic_task
+def failing_dynamic_task2(wf_params):
+    yield my_failing_sub_task_2()
+
+
+@dynamic_task
+def failing_dynamic_task(wf_params):
+    yield my_failing_sub_task()
+    yield my_failing_sub_task_2()
+    yield my_succeeding_sub_task()
+    yield failing_dynamic_task2()
+
+
 @workflow_class
 class FailingWorkflow:
-    failing_dynamic_task = failing_task()
+    # failing_dynamic_task = failing_task()
+    task = failing_dynamic_task()
