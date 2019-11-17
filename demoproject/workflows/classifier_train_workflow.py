@@ -131,7 +131,8 @@ def rearrange_data(
     model_blobs=[Types.Blob],
     model_files_names=[Types.String],
 )
-@python_task(cache=True, cache_version="1000 epochs", gpu_request="1", gpu_limit="1", memory_request="64Gi")
+@python_task(cache=True, cache_version="epochs:1000_patience:200_training-augmentation-only", gpu_request="1",
+             gpu_limit="1", memory_request="64Gi")
 def train_on_datasets(
         wf_params,
         training_validation_config_json,

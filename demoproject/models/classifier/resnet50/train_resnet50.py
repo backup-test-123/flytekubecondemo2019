@@ -59,15 +59,16 @@ def train_resnet50_model(
 
     # Creating a data generator for training data and apply augmentation
     gen = keras.preprocessing.image.ImageDataGenerator(
-        horizontal_flip=True,
+        width_shift_range=0.1,
+        height_shift_range=0.1,
+        rotation_range=5,
+        zoom_range=0.05,
+        fill_mode="nearest",
         vertical_flip=True,
     )
 
     # Creating a data generator and configuring online data augmentation for validation data
-    val_gen = keras.preprocessing.image.ImageDataGenerator(
-        horizontal_flip=True,
-        vertical_flip=True,
-    )
+    val_gen = keras.preprocessing.image.ImageDataGenerator()
 
     # Organizing the training images into batches
     batches = gen.flow_from_directory(
