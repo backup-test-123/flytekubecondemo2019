@@ -76,7 +76,7 @@ def train_resnet50_model(
         target_size=size,
         class_mode="categorical",
         shuffle=True,
-        batch_size=batch_size,
+        batch_size=batch_size*gpus,
     )
 
     num_train_steps = len(batches)
@@ -90,7 +90,7 @@ def train_resnet50_model(
         target_size=size,
         class_mode="categorical",
         shuffle=True,
-        batch_size=batch_size,
+        batch_size=batch_size*gpus,
     )
 
     num_valid_steps = len(val_batches)
@@ -148,6 +148,8 @@ def train_resnet50_model(
         callbacks=[early_stopping, checkpointer],
         validation_data=val_batches,
         validation_steps=num_valid_steps,
+        workers=gpus,
+        max_queue_size=5*gpus,
     )
     model.save(output_model_folder + "/" + FINAL_FILE_NAME)
 
