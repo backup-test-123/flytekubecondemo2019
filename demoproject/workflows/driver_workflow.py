@@ -4,10 +4,11 @@ from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import workflow_class, Output, Input
 from workflows.classifier_evaluate_workflow import evaluate_lp
-from workflows.classifier_train_workflow import train_lp, DEFAULT_VALIDATION_DATA_RATIO, \
-    DEFAULT_TRAINING_VALIDATION_CONFIG_FILE
+from workflows.classifier_train_workflow import train_lp, DEFAULT_VALIDATION_DATA_RATIO
 from workflows.data_preparation_workflow import data_prep
 
+DEFAULT_TRAINING_CONFIG_FILE = "models/classifier/resnet50/configs/model_training_config_demo.json"
+DEFAULT_EVALUATION_CONFIG_FILE = "models/classifier/resnet50/configs/model_evaluation_config_demo.json"
 
 # compute_confusion_matrix = SdkTask.fetch(
 #     project="kubecondemo2019-metrics",
@@ -32,8 +33,10 @@ class DriverWorkflow:
 
     streams_metadata_path = Input(Types.String, required=True)
     training_validation_config_json = Input(Types.Generic,
-                                            default=ujson.loads(open(DEFAULT_TRAINING_VALIDATION_CONFIG_FILE).read()))
+                                            default=ujson.loads(open(DEFAULT_TRAINING_CONFIG_FILE).read()))
     validation_data_ratio = Input(Types.Float, default=DEFAULT_VALIDATION_DATA_RATIO)
+    evaluation_config_json = Input(Types.Generic,
+                                   default=ujson.loads(open(DEFAULT_EVALUATION_CONFIG_FILE).read()))
 
     prepare = data_prep(
         streams_external_storage_prefix=streams_external_storage_prefix,
@@ -54,7 +57,7 @@ class DriverWorkflow:
         available_streams_names=prepare.outputs.streams_names_out,
         available_streams_mpblobs=prepare.outputs.selected_frames_mpblobs,
         streams_metadata_path=streams_metadata_path,
-        evaluation_config_json=training_validation_config_json,
+        evaluation_config_json=evaluation_config_json,
         model=pick_second.outputs.second,
         validation_data_ratio=validation_data_ratio
     )

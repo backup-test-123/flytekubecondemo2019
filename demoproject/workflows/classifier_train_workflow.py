@@ -4,12 +4,12 @@ import os
 import random
 import shutil
 
+import flytekit.models.task as task_model
 import ujson
 from flytekit.common import utils as flytekit_utils
 from flytekit.sdk.tasks import python_task, inputs, outputs
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import workflow_class, Output, Input
-import flytekit.models.task as task_model
 from models.classifier.resnet50.constants import DEFAULT_BATCH_SIZE
 from models.classifier.resnet50.constants import DEFAULT_EPOCHS
 from models.classifier.resnet50.constants import DEFAULT_IMG_SIZE
@@ -131,8 +131,8 @@ def rearrange_data(
     model_blobs=[Types.Blob],
     model_files_names=[Types.String],
 )
-@python_task(cache=True, cache_version="gpus:4_epochs:1000_patience:200_training-augmentation-only", gpu_request="4",
-             gpu_limit="4", memory_request="64Gi")
+@python_task(cache=True, cache_version="epochs:1000_patience:200_training-augmentation-only", gpu_request="1",
+             gpu_limit="1", memory_request="64Gi")
 def train_on_datasets(
         wf_params,
         training_validation_config_json,
