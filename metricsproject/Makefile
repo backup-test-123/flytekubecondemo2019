@@ -1,6 +1,6 @@
 export IMAGE_NAME=flytekubecondemo2019_metrics
 PROJECT=kubecondemo2019-metrics
-DOMAIN=development
+DOMAIN=staging
 VERSION=$(shell ./version.sh)
 
 serialize:
