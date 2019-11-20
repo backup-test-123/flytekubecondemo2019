@@ -6,3 +6,4 @@ __pycache__/
 */run_test.py
 */ignore
 .DS_Store
+model
