@@ -5,6 +5,7 @@ import numpy as np
 from flytekit.common import utils
 from flytekit.sdk.tasks import (
     python_task,
+    notebook_task,
     inputs,
     outputs,
 )
@@ -81,3 +82,21 @@ def confusion_matrix(wf_params, y_true, y_pred, title, normalize, classes, matri
               m[i].append(j)
         visual.set(f_path)
         matrix.set(m)
+
+
+confusion_matrix_notebook = notebook_task(
+    "confusion_matrix.ipynb",
+    inputs={
+        'y_true': [Types.Integer],
+        'y_pred': [Types.Integer],
+        'title': Types.String,
+        'normalize': Types.Boolean,
+        'classes': [Types.String],
+    },
+    outputs={
+        'matrix': [[Types.Integer]],
+        'visual': Types.Blob,
+    },
+    cache=True,
+    cache_version="1",
+)
