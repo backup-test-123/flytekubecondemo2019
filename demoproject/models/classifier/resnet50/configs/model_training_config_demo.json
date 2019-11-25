@@ -1,0 +1,66 @@
+{
+  "resnet_config": {
+    "patience": 200,
+    "epochs": 1000,
+    "batch_size": 32,
+    "target_size": [
+      224,
+      224
+    ],
+    "weights": "imagenet",
+    "validation_percentage": "20",
+    "train_augmentation_ignore": {
+      "horizontal_flip": false,
+      "vertical_flip": true,
+      "width_shift_range": 0.2,
+      "height_shift_range": 0.2,
+      "fill_mode": "nearest",
+      "rotation_range": 10,
+      "zoom_range": 0.1
+    },
+    "validation_augmentation_ignore": {
+      "horizontal_flip": true,
+      "vertical_flip": true
+    }
+  },
+  "train_validation_datasets": {
+      "1537396038_cam-rgb-1": {},
+      "1537396038_cam-rgb-2": {},
+      "1537396662_cam-rgb-1": {},
+      "1537396662_cam-rgb-2": {},
+      "1537396790_cam-rgb-1": {},
+      "1537396790_cam-rgb-2": {},
+      "1537396942_cam-rgb-1": {},
+      "1537396942_cam-rgb-2": {},
+      "1538521877_cam-rgb-1": {},
+      "1538521877_cam-rgb-2": {},
+      "1538521964_cam-rgb-1": {},
+      "1538521964_cam-rgb-2": {},
+      "1538522195_cam-rgb-1": {},
+      "1538522195_cam-rgb-2": {},
+      "1538522386_cam-rgb-1": {},
+      "1538522386_cam-rgb-2": {},
+      "1538522615_cam-rgb-1": {},
+      "1538522615_cam-rgb-2": {},
+      "1538522881_cam-rgb-1": {},
+      "1538522881_cam-rgb-2": {},
+      "1538523052_cam-rgb-1": {},
+      "1538523052_cam-rgb-2": {},
+      "1538523280_cam-rgb-1": {},
+      "1538523280_cam-rgb-2": {},
+      "1539391462_cam-rgb-1": {},
+      "1539391462_cam-rgb-2": {},
+      "1539391643_cam-rgb-1": {},
+      "1539391643_cam-rgb-2": {},
+      "1539391807_cam-rgb-1": {},
+      "1539391807_cam-rgb-2": {},
+      "1539391941_cam-rgb-1": {},
+      "1539391941_cam-rgb-2": {},
+      "1539471715_cam-rgb-1": {},
+      "1539471715_cam-rgb-2": {},
+      "1539471904_cam-rgb-1": {},
+      "1539471904_cam-rgb-2": {},
+      "1539475636_cam-rgb-1": {},
+      "1539475636_cam-rgb-2": {}
+  }
+}

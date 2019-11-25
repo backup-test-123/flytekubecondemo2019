@@ -1,14 +1,16 @@
-FROM python:3.7.5-slim-buster
-
-# Run this before dealing with our own virtualenv. The AWS CLI uses its own virtual environment
-RUN pip3 install awscli
-
+FROM ubuntu:bionic
 
 WORKDIR /app
 ENV VENV /app/venv
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 ENV PYTHONPATH /app
+
+# Install Python3 and other basics
+RUN apt-get update && apt-get install -y git python3.7 python3.7-venv make build-essential libssl-dev python3-venv python3-pip curl
+
+# Run this before dealing with our own virtualenv. The AWS CLI uses its own virtual environment
+RUN pip3 install awscli
 
 # Set up a virtual environment to use with our workflows
 RUN python3.7 -m venv ${VENV}

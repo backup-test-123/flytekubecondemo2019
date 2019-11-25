@@ -1,22 +1,17 @@
 from __future__ import absolute_import
-import os
-import numpy as np
+
 import matplotlib.pyplot as plt
-
-from sklearn import svm, datasets
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix as _cm
-from sklearn.utils.multiclass import unique_labels
-
+import numpy as np
+from flytekit.common import utils
 from flytekit.sdk.tasks import (
     python_task,
+    notebook_task,
     inputs,
     outputs,
 )
 from flytekit.sdk.types import Types
-from flytekit.common.utils import AutoDeletingTempDir
-
-import numpy as np
+from sklearn.metrics import confusion_matrix as _cm
+from sklearn.utils.multiclass import unique_labels
 
 
 def _plot_confusion_matrix(y_true, y_pred, classes, to_file_path=None, normalize=False, title=None, cmap=plt.cm.Blues):
@@ -73,43 +68,35 @@ def _plot_confusion_matrix(y_true, y_pred, classes, to_file_path=None, normalize
     return cm
 
 
-def _sample_train():
-    # import some data to play with
-    iris = datasets.load_iris()
-    X = iris.data
-    y = iris.target
-    class_names = iris.target_names
-
-    # Split the data into a training set and a test set
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
-
-    # Run classifier, using a model that is too regularized (C too low) to see
-    # the impact on the results
-    classifier = svm.SVC(kernel='linear', C=0.01)
-    y_pred = classifier.fit(X_train, y_train).predict(X_test)
-
-    return y_test, y_pred, class_names
-
-
 @inputs(y_true=[Types.Integer], y_pred=[Types.Integer], title=Types.String, normalize=Types.Boolean, classes=[Types.String])
 @outputs(matrix=[[Types.Integer]], visual=Types.Blob)
-@python_task
+@python_task(cache=True, cache_version="1")
 def confusion_matrix(wf_params, y_true, y_pred, title, normalize, classes, matrix, visual):
     with utils.AutoDeletingTempDir('test') as tmpdir:
-        f_path = tmpdir.get_named_tempfile("visual")
+        f_path = tmpdir.get_named_tempfile("visual.png")
         cm = _plot_confusion_matrix(np.asarray(y_true), np.asarray(y_pred), classes=np.asarray(classes), title=title, normalize=normalize, to_file_path=f_path)
-        visual.set(f_path)
         m = []
         for i in range(cm.shape[0]):
             m.append([])
             for j in range(cm.shape[1]):
               m[i].append(j)
+        visual.set(f_path)
         matrix.set(m)
 
 
-if __name__ == "__main__":
-    y_test, y_pred, class_names = _sample_train()
-    print(y_test)
-    # Plot non-normalized confusion matrix
-    cm = confusion_matrix.unit_test(y_true=y_test.tolist(), y_pred=y_pred.tolist(), title='Confusion matrix, without normalization', normalize=False, classes=class_names.tolist())
-    print(cm)
+confusion_matrix_notebook = notebook_task(
+    "confusion_matrix.ipynb",
+    inputs={
+        'y_true': [Types.Integer],
+        'y_pred': [Types.Integer],
+        'title': Types.String,
+        'normalize': Types.Boolean,
+        'classes': [Types.String],
+    },
+    outputs={
+        'matrix': [[Types.Integer]],
+        'visual': Types.Blob,
+    },
+    cache=True,
+    cache_version="1",
+)
