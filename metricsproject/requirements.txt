@@ -1,5 +1,5 @@
 numpy
-flytekit[all]==0.2.2
+git+git://github.com/lyft/flytekit@1b54cfca6b1d6fd3ec4d5f32d0082cb5f977cc74#egg=flytekit[all]
 scikit-learn==0.20.4
 matplotlib==3.1.0  # pinned at 3.1.0 to misclips of the top and the bottom rows of a heatmap  https://github.com/matplotlib/matplotlib/issues/15368
 jupyter
