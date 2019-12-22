@@ -1,7 +1,7 @@
 import time
 
 from flytekit.common.types.impl.schema import Schema
-from flytekit.sdk.tasks import dynamic_task, python_task, inputs, outputs
+from flytekit.sdk.tasks import dynamic_task, python_task, inputs, outputs, hive_task
 from flytekit.sdk.tasks import qubole_hive_task
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import Input, workflow_class
