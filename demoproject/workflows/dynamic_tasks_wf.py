@@ -1,6 +1,8 @@
 import time
 
-from flytekit.sdk.tasks import dynamic_task, python_task, inputs, hive_task
+from flytekit.common.types.impl.schema import Schema
+from flytekit.sdk.tasks import dynamic_task, python_task, inputs, outputs
+from flytekit.sdk.tasks import qubole_hive_task
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import Input, workflow_class
 
@@ -72,7 +74,30 @@ def failing_dynamic_task(wf_params):
     yield failing_dynamic_task2()
 
 
+@outputs(hive_results=Types.Schema())
+@qubole_hive_task()
+def simple_query(wf_params, hive_results):
+    q1 = "SELECT 1"
+    schema_1, formatted_query_1 = Schema.create_from_hive_query(select_query=q1)
+
+    hive_results.set(schema_1)
+    return [formatted_query_1]
+
+
+@inputs(count=Types.Integer)
+@dynamic_task
+def hive_tasks(wf_params, count):
+    for i in range(0, count):
+        yield simple_query()
+
+
 @workflow_class
 class FailingWorkflow:
     # failing_dynamic_task = failing_task()
     task = failing_dynamic_task()
+
+
+@workflow_class
+class HiveQueries(object):
+    count = Input(Types.Integer, default=10)
+    task = hive_tasks(count=count)
