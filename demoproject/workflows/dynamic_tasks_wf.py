@@ -75,7 +75,7 @@ def failing_dynamic_task(wf_params):
 
 
 @outputs(hive_results=Types.Schema())
-@qubole_hive_task()
+@qubole_hive_task(cache=True, cache_version="1")
 def simple_query(wf_params, hive_results):
     q1 = "SELECT 1"
     schema_1, formatted_query_1 = Schema.create_from_hive_query(select_query=q1)
