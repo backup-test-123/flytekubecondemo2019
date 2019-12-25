@@ -114,12 +114,19 @@ def dummy(wf_params):
     pass
 
 
+@inputs(in_x=Types.Integer)
+@outputs(out_y=Types.Integer)
+@python_task(cache=True, cache_version="1")
+def cached_dummy(wf_params, in_x, out_y):
+    out_y.set(1)
+
+
 @workflow_class
 class ForceOrdering(object):
     t1 = dummy()
     t2 = dummy()
     t3 = dummy()
-    t4 = dummy()
+    t4 = cached_dummy(in_x=5)
 
     t1 >> t4
     t2 >> t4
