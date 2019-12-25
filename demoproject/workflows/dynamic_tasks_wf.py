@@ -1,10 +1,16 @@
 import time
 
+from flytekit.common import launch_plan
 from flytekit.common.types.impl.schema import Schema
 from flytekit.sdk.tasks import dynamic_task, python_task, inputs, outputs, hive_task
 from flytekit.sdk.tasks import qubole_hive_task
 from flytekit.sdk.types import Types
 from flytekit.sdk.workflow import Input, workflow_class
+
+
+def cp_wf(from_host, to_host):
+    lp = launch_plan.SdkLaunchPlan.fetch(project="bulkmapmatching", domain="development", name="ProjectionArtifacts",
+                                         version="749dd10bbbcdcf1b4a5c547f24318a8b11d02e8c")
 
 
 @python_task
@@ -101,3 +107,20 @@ class FailingWorkflow:
 class HiveQueries(object):
     count = Input(Types.Integer, default=10)
     task = hive_tasks(count=count)
+
+
+@python_task
+def dummy(wf_params):
+    pass
+
+
+@workflow_class
+class ForceOrdering(object):
+    t1 = dummy()
+    t2 = dummy()
+    t3 = dummy()
+    t4 = dummy()
+
+    t1 >> t4
+    t2 >> t4
+    t3 >> t4
