@@ -127,7 +127,9 @@ class ForceOrdering(object):
     t2 = dummy()
     t3 = dummy()
     t4 = cached_dummy(in_x=5)
+    t5 = dummy()
 
     t1 >> t4
     t2 >> t4
     t3 >> t4
+    t4 >> t5
